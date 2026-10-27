@@ -2719,19 +2719,35 @@ function renderPlan(){
 // 記録の引っ越し：claude.ai版とオフライン版（ホーム画面アプリ）の間で、記録を文字にして移す
 function moveHTML(){
   return `<details class="rd" id="move"><summary>記録をほかの端末・アプリへ移す</summary>
-    <p class="small-muted" style="margin:6px 0">移す元で「書き出す」→「コピー」、移す先で「貼り付けて読み込む」。両方の記録は合わさり、新しく答えたほうが残ります。</p>
-    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn small" id="mv-out">書き出す</button><button class="btn small" id="mv-copy" hidden>コピー</button></div>
+    <p class="small-muted" style="margin:6px 0"><b>今までの記録がある方</b>で ①「書き出す」→ ②「コピー」。<br><b>新しく使う方</b>で、下の欄に貼り付けて ③「貼り付けて読み込む」。両方の記録は合わさり、新しく答えたほうが残ります。</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn small" id="mv-out">① 書き出す</button><button class="btn small primary" id="mv-copy" hidden>② コピー</button></div>
     <textarea id="mv-text" rows="3" style="width:100%;margin-top:8px;font:12px var(--f-mono);border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--surface);color:var(--ink)" placeholder="ここに書き出した記録を貼り付け"></textarea>
-    <button class="btn small primary" id="mv-in" style="margin-top:6px">貼り付けて読み込む</button></details>`;
+    <button class="btn small primary" id="mv-in" style="margin-top:6px">③ 貼り付けて読み込む</button></details>`;
+}
+// 記録を短い文字にする（gzip＋base64）。古い形式（FE-REC1:JSON）も読める
+const b64e=buf=>{ let s=""; const u=new Uint8Array(buf); for(let i=0;i<u.length;i+=0x8000) s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000)); return btoa(s); };
+async function packRec(){
+  const js=JSON.stringify(S);
+  try{ if(window.CompressionStream){ const buf=await new Response(new Blob([js]).stream().pipeThrough(new CompressionStream("gzip"))).arrayBuffer(); return "FE-REC2:"+b64e(buf); } }catch(e){}
+  return "FE-REC1:"+js;
+}
+async function unpackRec(t){
+  t=String(t||"").trim(); if(!t) return null;
+  if(/%[0-9A-Fa-f]{2}/.test(t)){ try{ t=decodeURIComponent(t); }catch(e){} }
+  const m=t.match(/FE-REC2:([A-Za-z0-9+\/=\s]+)/);
+  if(m){ const bin=atob(m[1].replace(/\s+/g,"")), u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i);
+    const js=await new Response(new Blob([u]).stream().pipeThrough(new DecompressionStream("gzip"))).text(); t=js; }
+  const a=t.indexOf("{"), b=t.lastIndexOf("}"); if(a<0||b<a) return null;
+  const o=JSON.parse(t.slice(a,b+1)); return o&&typeof o==="object"&&o.days?o:null;
 }
 function bindMove(root){
   const out=root.querySelector("#mv-out"); if(!out) return;
   const ta=root.querySelector("#mv-text"), cp=root.querySelector("#mv-copy");
-  out.addEventListener("click",()=>{ ta.value="FE-REC1:"+JSON.stringify(S); cp.hidden=false; ta.select(); });
+  out.addEventListener("click",async()=>{ ta.value=await packRec(); cp.hidden=false; ta.focus(); ta.select(); });
   cp.addEventListener("click",async()=>{ try{ await navigator.clipboard.writeText(ta.value); toast("コピーしました。移す先で貼り付けてください"); }catch(e){ ta.select(); try{ document.execCommand("copy"); toast("コピーしました"); }catch(_){ toast("文字を長押ししてコピーしてください"); } } });
-  root.querySelector("#mv-in").addEventListener("click",()=>{
-    const t=ta.value.trim().replace(/^FE-REC1:/,"");
-    let o; try{ o=JSON.parse(t); }catch(e){ toast("読み込めませんでした。書き出した文字を全部貼り付けてください"); return; }
+  root.querySelector("#mv-in").addEventListener("click",async()=>{
+    let o=null; try{ o=await unpackRec(ta.value); }catch(e){ o=null; }
+    if(!o){ toast("読み込めませんでした。書き出した文字を全部貼り付けてください"); return; }
     if(!o||typeof o!=="object"||!o.days){ toast("このアプリの記録ではないようです"); return; }
     const merged=mergeState(o,S); Object.keys(S).forEach(k=>delete S[k]); Object.assign(S,merged); S.updatedAt=Date.now(); save();
     toast("記録を読み込みました"); renderPill(); renderHome();
