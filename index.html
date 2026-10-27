@@ -2841,6 +2841,7 @@ function renderBook(){
           <h2>${esc(c.title)}</h2>
           <div class="small-muted">${esc(c.sub)}</div>
           ${(()=>{ const r=bookRange(c.id); return r.list.length?`<div class="today-range"><div class="eyebrow">${r.label}</div><div class="tr-list">${r.list.map(x=>`<button class="tr-sec ${secDone(x.k)?"ok":""}" data-sec="${x.i}">${secDone(x.k)?"✓ ":""}${esc(x.t)}</button>`).join("")}</div>${r.done?`<span class="small-muted">読み終えました。明日の範囲はこの続きから始まります</span>`:`<button class="btn primary" id="range-done">${r.btn}</button>`}</div>`:""; })()}
+          ${vidHTML(c.id)}
           ${ANIMCH[c.id]?`<div class="anim-list"><span class="eyebrow" style="align-self:center">アニメで見る</span>${ANIMCH[c.id].map(id=>animBtn(id,ANIM[id].title)).join("")}</div>`:""}
         </header>
         <div class="ch-body">${c.body}
@@ -2876,6 +2877,15 @@ function renderBook(){
   bindJumps($("#v-book"));
 }
 
+// 動画で見る：YouTube「基本情報技術者試験YouTuber すーさん」の解説動画（章ごと・始まる位置つき）
+const VIDS={"kiso": [["n進数の概念", "oqaBEnhIxk0", 106], ["基数変換", "oqaBEnhIxk0", 690], ["n進数の計算", "oqaBEnhIxk0", 1715], ["シフト演算", "oqaBEnhIxk0", 2177], ["数の表現と誤差", "oqaBEnhIxk0", 2889], ["確率と統計", "oqaBEnhIxk0", 5084], ["線形代数", "oqaBEnhIxk0", 5905], ["その他の基礎理論", "oqaBEnhIxk0", 6421], ["A/D変換・データ表現", "oqaBEnhIxk0", 7470], ["デジタルデータへの変換", "oqaBEnhIxk0", 7815], ["単位計算をマスターして計算問題を即答する", "ZwktkxbtdGo", 0]], "algo": [["プログラムの基本", "oqaBEnhIxk0", 27123], ["基本アルゴリズム", "oqaBEnhIxk0", 27743], ["計算量と演習", "oqaBEnhIxk0", 28676], ["言語とマークアップ言語", "oqaBEnhIxk0", 29351], ["オブジェクト指向とUML", "oqaBEnhIxk0", 30022], ["科目Bのアルゴリズム問題を1本で対策", "wFpyeWto8Og", 0], ["連結リストとオブジェクト指向を完璧に理解する", "NcvjqWcdiBs", 0]], "hw": [["5大装置", "oqaBEnhIxk0", 8735], ["CPU", "oqaBEnhIxk0", 9125], ["主記憶装置", "oqaBEnhIxk0", 10992], ["補助記憶装置", "oqaBEnhIxk0", 11897], ["入出力装置", "oqaBEnhIxk0", 12681]], "sys": [["システムの構成", "oqaBEnhIxk0", 31298], ["信頼性と性能評価", "oqaBEnhIxk0", 31965]], "sw": [["OS", "oqaBEnhIxk0", 13359], ["ジョブ管理とタスク管理", "oqaBEnhIxk0", 13674], ["実記憶管理", "oqaBEnhIxk0", 14195], ["仮想記憶管理", "oqaBEnhIxk0", 14510], ["ファイル管理", "oqaBEnhIxk0", 14923]], "hwlogic": [["論理演算", "oqaBEnhIxk0", 3365], ["半加算器と全加算器", "oqaBEnhIxk0", 4633], ["データと機器の制御", "oqaBEnhIxk0", 8464]], "hi": [["マルチメディア", "oqaBEnhIxk0", 15258], ["業務モデリングとUI", "oqaBEnhIxk0", 34402]], "db": [["データベースの基本", "oqaBEnhIxk0", 15486], ["正規化", "oqaBEnhIxk0", 15840], ["トランザクション", "oqaBEnhIxk0", 16755], ["データの復元", "oqaBEnhIxk0", 17296], ["関係演算とSQL", "oqaBEnhIxk0", 17674]], "ai": [["機械学習とディープラーニング", "oqaBEnhIxk0", 18593]], "nw": [["ネットワークの基本", "oqaBEnhIxk0", 19106], ["OSI基本参照モデル", "oqaBEnhIxk0", 19466], ["TCP/IP", "oqaBEnhIxk0", 20284], ["IPアドレスとサブネットマスク", "oqaBEnhIxk0", 20806], ["その他の出題範囲", "oqaBEnhIxk0", 21530]], "sec": [["情報セキュリティの考え方", "oqaBEnhIxk0", 22126], ["ウイルスとサイバー攻撃", "oqaBEnhIxk0", 22556], ["サイバー攻撃の過去問", "oqaBEnhIxk0", 23244], ["暗号化とデジタル署名", "oqaBEnhIxk0", 23974], ["ネットワークセキュリティ", "oqaBEnhIxk0", 24992], ["ネットワークセキュリティ過去問", "oqaBEnhIxk0", 25575], ["科目Bのセキュリティ対策", "oqaBEnhIxk0", 26321]], "dev": [["システム開発の流れ", "oqaBEnhIxk0", 33137], ["開発手法", "oqaBEnhIxk0", 33858], ["モジュール分割", "oqaBEnhIxk0", 34931], ["テスト手法", "oqaBEnhIxk0", 35307]], "pm": [["プロジェクトマネジメントとは", "oqaBEnhIxk0", 36140], ["コスト管理とスケジュール管理", "oqaBEnhIxk0", 36610]], "sm": [["ITサービスマネジメント", "oqaBEnhIxk0", 37601], ["システム監査", "oqaBEnhIxk0", 38215]], "strategy": [["ソリューションビジネス", "oqaBEnhIxk0", 38707], ["経営・事業戦略とマーケティング", "oqaBEnhIxk0", 39842], ["経営管理システム", "oqaBEnhIxk0", 40540]], "biz": [["ビジネスインダストリ", "oqaBEnhIxk0", 39197]], "corp": [["経営組織と会計・財務", "oqaBEnhIxk0", 40978], ["法規と標準化", "oqaBEnhIxk0", 42494]]};
+const PQVID={r05a:"LjI_phbH7No",r06a:"xhZrwdZSFqc",r06b:"Q-bXLJiZThg",r07b:"Yhl7mCsOyeM"};
+const ytUrl=(v,s)=>`https://www.youtube.com/watch?v=${v}${s?`&t=${s}s`:""}`;
+const fmtT=s=>s?`${Math.floor(s/3600)?Math.floor(s/3600)+":":""}${String(Math.floor(s/60)%60).padStart(Math.floor(s/3600)?2:1,"0")}:${String(s%60).padStart(2,"0")}`:"";
+function vidHTML(ch){ const L=VIDS[ch]; if(!L) return "";
+  return `<details class="rd vids"><summary>動画で見る（すーさんの解説・${L.length}本）</summary>
+    <p class="small-muted" style="margin:6px 0">難しいところは動画で聞くと分かりやすくなります。押すとYouTubeのその場面から始まります。</p>
+    <div class="chips">${L.map(([n,v,s])=>`<a class="chip" href="${ytUrl(v,s)}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">${esc(n)}${s?` <span class="mono small-muted">${fmtT(s)}</span>`:" <span class=\"small-muted\">（単独の動画）</span>"}</a>`).join("")}</div></details>`; }
 /* ================= 問題演習 ================= */
 let quiz=null;
 function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
@@ -3271,7 +3281,7 @@ const pqExp=(p,pick)=>{ const ok=pick===p.a, id=pqId(p), x=PQX[id];
   return `<div class="exp ${ok?"":"ng"}"><h4>${pick===null||pick===undefined?"正解は "+KANA[p.a]:ok?"正解":"不正解　正解は "+KANA[p.a]}</h4>${esc(p.e)}
     ${x?`<div class="ex-text" style="margin-top:10px" data-pqx-text="${id}">${esc(x.text||"考え中…")}</div>`:""}
     <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">${sampleFn&&!sampleOff?`<button class="btn small" data-pqx="${id}" data-pick="${pick===undefined||pick===null?"":pick}" ${x&&x.loading?"disabled":""}>${x?"もう一度くわしく解説":"もっとくわしく解説して"}</button>`:""}
-    <a href="${esc(pqUrl(p))}" target="_blank" rel="noopener" class="small-muted">${p.s!=="r01a"&&!p.fs?"IPAの問題冊子（PDF）↗":"過去問道場の解説 ↗"}</a></div>
+    <a href="${esc(pqUrl(p))}" target="_blank" rel="noopener" class="small-muted">${p.s!=="r01a"&&!p.fs?"IPAの問題冊子（PDF）↗":"過去問道場の解説 ↗"}</a>${PQVID[p.s]?`<a href="${ytUrl(PQVID[p.s])}" target="_blank" rel="noopener" class="small-muted">この回の解説動画（すーさん）↗</a>`:""}</div>
     ${sampleMsg?`<div class="small-muted" style="margin-top:6px">${esc(sampleMsg)}</div>`:""}</div>`; };
 async function explainPQ(id,pick){
   const p=pqById(id); if(!p||!sampleFn) return;
