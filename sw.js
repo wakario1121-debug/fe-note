@@ -14,7 +14,7 @@ self.addEventListener("fetch",e=>{
   if(url.origin!==location.origin) return;
   // ページ本体：電波があれば最新を取りに行き、なければ保存した版
   if(req.mode==="navigate"||url.pathname.endsWith("/index.html")){
-    e.respondWith(fetch(req).then(r=>{ const cp=r.clone(); caches.open(CACHE).then(c=>c.put("index.html",cp)); return r; }).catch(()=>caches.match("index.html")));
+    e.respondWith(fetch(req,{cache:"no-store"}).then(r=>{ const cp=r.clone(); caches.open(CACHE).then(c=>c.put("index.html",cp)); return r; }).catch(()=>caches.match("index.html")));
     return;
   }
   e.respondWith(caches.match(req,{ignoreSearch:true}).then(hit=>hit||fetch(req)));
