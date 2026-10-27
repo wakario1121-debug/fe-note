@@ -2743,8 +2743,9 @@ async function unpackRec(t){
 function bindMove(root){
   const out=root.querySelector("#mv-out"); if(!out) return;
   const ta=root.querySelector("#mv-text"), cp=root.querySelector("#mv-copy");
-  out.addEventListener("click",async()=>{ ta.value=await packRec(); cp.hidden=false; ta.focus(); ta.select(); });
-  cp.addEventListener("click",async()=>{ try{ await navigator.clipboard.writeText(ta.value); toast("コピーしました。移す先で貼り付けてください"); }catch(e){ ta.select(); try{ document.execCommand("copy"); toast("コピーしました"); }catch(_){ toast("文字を長押ししてコピーしてください"); } } });
+  out.addEventListener("click",async()=>{ ta.value=await packRec(); cp.hidden=false; ta.focus(); ta.select(); ta.setSelectionRange(0,ta.value.length); });
+  cp.addEventListener("click",async()=>{ try{ await navigator.clipboard.writeText(ta.value); toast("コピーしました。移す先で貼り付けてください"); }catch(e){ ta.focus(); ta.select(); ta.setSelectionRange(0,ta.value.length); let ok=false; try{ ok=document.execCommand("copy"); }catch(_){}
+    toast(ok?"コピーしました。移す先で貼り付けてください":"文字を長押し→「すべてを選択」→「コピー」してください"); } });
   root.querySelector("#mv-in").addEventListener("click",async()=>{
     let o=null; try{ o=await unpackRec(ta.value); }catch(e){ o=null; }
     if(!o){ toast("読み込めませんでした。書き出した文字を全部貼り付けてください"); return; }
