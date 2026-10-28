@@ -5028,7 +5028,8 @@ function bkBuild(){
 }
 function bkLoad(){ if(BK.pages&&BK.pages.length) return Promise.resolve(true);
   if(!BK.loading) BK.loading=bkAll().then(all=>{ const v=all.book; if(v&&v.blob&&v.hdr){ BK.blob=v.blob; BK.hdr=v.hdr; }
-    Object.entries(all).forEach(([k,v])=>{ if(k.startsWith("pdf-")&&v&&v.blob) BK.pdfs[+k.slice(4)]=v; }); return bkBuild(); }).catch(()=>false).finally(()=>{ BK.loading=null; });
+    Object.entries(all).forEach(([k,v])=>{ if(k.startsWith("pdf-")&&v&&v.blob) BK.pdfs[+k.slice(4)]=v; });
+    const A=all.pdfall; if(A&&A.blob) A.chs.forEach(c=>{ if(!BK.pdfs[c.ch]) BK.pdfs[c.ch]={blob:A.blob,n:c.n,off:c.off,doc:"all"}; }); return bkBuild(); }).catch(()=>false).finally(()=>{ BK.loading=null; });
   return BK.loading; }
 // 本データの形式：先頭8バイト "FEBOOK1\n"、4バイト（ヘッダの長さ）、ヘッダ（JSON）、ページ画像（JPEG）が続く
 async function bkParse(file){
@@ -5054,6 +5055,12 @@ async function bkImportPdfs(files){
   const out=[], used=new Set(Object.keys(BK.pdfs).map(Number));
   for(const f of files){
     const doc=await pdfOpen(f), n=doc.numPages; doc.destroy();
+    // 全章をまとめた1つのPDF（ページ数が全章の合計と同じ）なら、章ごとに分けて使う
+    const total=Object.values(BOOK_PCOUNT).reduce((a,b)=>a+b,0);
+    if(n===total){ let off=0; const chs=Object.keys(BOOK_PCOUNT).map(Number).sort((a,b)=>a-b).map(ch=>{ const c={ch,off,n:BOOK_PCOUNT[ch]}; off+=c.n; return c; });
+      await bkPut("pdfall",{blob:f,n,chs,name:f.name,at:Date.now()}); delete BK.docs.all;
+      chs.forEach(c=>{ if(!BK.pdfs[c.ch]||BK.pdfs[c.ch].doc==="all") BK.pdfs[c.ch]={blob:f,n:c.n,off:c.off,doc:"all"}; used.add(c.ch); });
+      out.push(`全${chs.length}章まとめて（${n}ページ）`); continue; }
     const m=(f.name||"").match(/(\d{1,2})/); let ch=m?+m[1]:null;
     if(!(ch&&(!BOOK_PCOUNT[ch]||BOOK_PCOUNT[ch]===n))){
       const cand=Object.keys(BOOK_PCOUNT).map(Number).filter(c=>BOOK_PCOUNT[c]===n);
@@ -5080,8 +5087,9 @@ function bkTermKey(t){ return BOOKIDX[t]||null; }
 // PDFのページを画像にする（まわりの白い余白は切り取る）
 async function bkPdfURL(p){
   if(BK.rend.has(p.k)) return BK.rend.get(p.k);
-  if(!BK.docs[p.ch]) BK.docs[p.ch]=pdfOpen(BK.pdfs[p.ch].blob).catch(e=>{ delete BK.docs[p.ch]; throw e; });
-  const doc=await BK.docs[p.ch], pg=await doc.getPage(p.j);
+  const src=BK.pdfs[p.ch], dk=src.doc||p.ch;
+  if(!BK.docs[dk]) BK.docs[dk]=pdfOpen(src.blob).catch(e=>{ delete BK.docs[dk]; throw e; });
+  const doc=await BK.docs[dk], pg=await doc.getPage((src.off||0)+p.j);
   const v0=pg.getViewport({scale:1}), sc=Math.min(12,1800/v0.width), vp=pg.getViewport({scale:sc});
   const cv=document.createElement("canvas"); cv.width=Math.ceil(vp.width); cv.height=Math.ceil(vp.height);
   const cx=cv.getContext("2d"); await pg.render({canvasContext:cx,viewport:vp}).promise;
@@ -5130,10 +5138,11 @@ async function bkShow(i){
 function bkRenderImport(opt){
   const have=BK.pages&&BK.pages.length;
   $("#bv-title").textContent=have?"本のページを追加する":"本のページを見る"; $("#bv-pos").textContent=""; $("#bv-ctl").hidden=true; $("#bv-zoom").hidden=true; $("#bv-add").hidden=true;
-  const list=Object.entries(BK.pdfs).map(([c,v])=>`第${c}章（${v.n}ページ）`).concat(BK.hdr?[`本データ（${BK.hdr.pages.length}ページ）`]:[]);
+  const list=Object.keys(BK.pdfs).map(c=>`第${c}章`).concat(BK.hdr?[`本データ（${BK.hdr.pages.length}ページ）`]:[]);
   $("#bv-body").innerHTML=`<div class="bv-imp">
-    <p><b>本のPDFを選ぶ</b>：チャットに送ったPDF（1.pdf〜13.pdf など）を、まとめて選べます。マネジメント系・ストラテジ系のPDFもここから足せます。</p>
-    <label class="btn primary bv-pick">PDFを選ぶ（複数OK）<input type="file" id="bv-pdf" accept="application/pdf,.pdf" multiple hidden></label>
+    <p><b>まとめて読み込む</b>：チャットで受け取った <b>book-all.pdf</b>（テクノロジ系の全13章が1つになったPDF）を選ぶだけで、全部入ります。</p>
+    <label class="btn primary bv-pick">PDFを選ぶ<input type="file" id="bv-pdf" accept="application/pdf,.pdf" multiple hidden></label>
+    <p class="small-muted">1.pdf〜13.pdf のように分かれたPDFも、まとめて選べます（iPhoneでは「ファイル」の画面で右上の「選択」を押すと、いくつも選べます）。マネジメント系・ストラテジ系のPDFもここから足せます。</p>
     <p style="margin-top:14px">または、チャットで受け取った <b>fe-book.febook</b>（全13章をまとめた軽いファイル）を選ぶ：</p>
     <label class="btn bv-pick">本データを選ぶ<input type="file" id="bv-file" hidden></label>
     <p class="small-muted">取り込んだページは、この端末の中にだけ保存されます。ネットには送られず、ほかの人は見られません。</p>
