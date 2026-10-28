@@ -231,6 +231,7 @@ main{max-width:1120px;margin:0 auto;padding:20px 16px 64px}
 .bv-imp{max-width:520px;margin:20px auto;background:var(--surface);border-radius:14px;padding:18px;line-height:1.8}
 .bv-imp ol{padding-left:1.3em}
 .bv-pick{display:inline-block;margin:6px 0;cursor:pointer}
+.bv-wait{max-width:520px;margin:40px auto;text-align:center;color:var(--muted)}
 .bv-open{margin-top:8px}
 mark.hit,.hit-on{background:#FFE24D!important;color:#2a2200!important;border-radius:3px;box-shadow:0 0 0 2px #FFE24D}
 .hit-blk{outline:3px solid #FFD400;outline-offset:3px;border-radius:6px;animation:hitf 1.6s ease 2}
@@ -524,7 +525,7 @@ pre.code{background:var(--code-bg);color:var(--code-ink);font-family:var(--f-mon
 </main>
 <div class="toast" id="toast" role="status" hidden></div>
 <div class="bookv" id="bookv" role="dialog" aria-modal="true" aria-labelledby="bv-title" hidden>
-  <div class="bv-head"><b id="bv-title">本のページを見る</b><button class="btn small" id="bv-zoom">拡大</button><button class="btn small" id="bv-close">閉じる</button></div>
+  <div class="bv-head"><b id="bv-title">本のページを見る</b><button class="btn small" id="bv-add" hidden>追加</button><button class="btn small" id="bv-zoom">拡大</button><button class="btn small" id="bv-close">閉じる</button></div>
   <div class="bv-body" id="bv-body"></div>
   <div class="bv-ctl" id="bv-ctl" hidden><button class="btn" id="bv-prev">◀ 前</button><span class="bv-pos" id="bv-pos"></span><button class="btn" id="bv-next">次 ▶</button><select id="bv-ch" aria-label="章を選ぶ"></select></div>
 </div>
@@ -5007,12 +5008,28 @@ const BOOKIDX={"ビット": "01-26", "バイト": "01-02", "ナノ秒": "04-15",
 // 本のページの画像は「本データ」ファイルとして利用者が自分で取り込み、この端末の中（IndexedDB）にだけ保存する。ネットには送らない。
 const BOOK_CH={kiso:1,kiso2:2,algo:3,hw:4,sys:5,sw:6,hwlogic:7,hi:8,db:9,nw:10,sec:11,dev:12,devm:13};
 const BOOK_TITLE=["","基礎理論①","基礎理論②","アルゴリズムとプログラミング","コンピュータ構成要素","システム構成要素","ソフトウェア","ハードウェア","ユーザーインタフェースとマルチメディア","データベース","ネットワーク","情報セキュリティ","システム開発","ソフトウェア開発手法"];
-const BK={hdr:null,blob:null,loading:null,cur:0,zoom:false,url:null};
+const BK={hdr:null,blob:null,pdfs:{},pages:null,loading:null,cur:0,zoom:false,url:null,docs:{},rend:new Map(),term:null};
+// 本のページ番号（印刷されている番号）＝ PDFのページ ＋ 章ごとのずれ
+const BOOK_POFF={1:15,2:49,3:89,4:141,5:181,6:205,7:227,8:257,9:277,10:337,11:387,12:447,13:491};
+const BOOK_PCOUNT={1:32,2:38,3:51,4:39,5:23,6:41,7:9,8:19,9:59,10:49,11:59,12:43,13:11};
+const pad2=n=>String(n).padStart(2,"0");
 function bkDB(){ return new Promise((res,rej)=>{ const r=indexedDB.open("fe-book",1); r.onupgradeneeded=()=>r.result.createObjectStore("f"); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
-async function bkGet(){ const db=await bkDB(); return new Promise((res,rej)=>{ const t=db.transaction("f").objectStore("f").get("book"); t.onsuccess=()=>res(t.result||null); t.onerror=()=>rej(t.error); }); }
-async function bkPut(v){ const db=await bkDB(); return new Promise((res,rej)=>{ const tx=db.transaction("f","readwrite"); tx.objectStore("f").put(v,"book"); tx.oncomplete=()=>res(); tx.onerror=()=>rej(tx.error); }); }
-async function bkDel(){ const db=await bkDB(); return new Promise(res=>{ const tx=db.transaction("f","readwrite"); tx.objectStore("f").delete("book"); tx.oncomplete=()=>res(); tx.onerror=()=>res(); }); }
-function bkLoad(){ if(BK.hdr) return Promise.resolve(true); if(!BK.loading) BK.loading=bkGet().then(v=>{ if(v&&v.blob&&v.hdr){ BK.blob=v.blob; BK.hdr=v.hdr; return true; } return false; }).catch(()=>false).finally(()=>{ BK.loading=null; }); return BK.loading; }
+async function bkAll(){ const db=await bkDB(); return new Promise((res,rej)=>{ const out={}; const rq=db.transaction("f").objectStore("f").openCursor(); rq.onsuccess=()=>{ const c=rq.result; if(c){ out[c.key]=c.value; c.continue(); } else res(out); }; rq.onerror=()=>rej(rq.error); }); }
+async function bkPut(key,v){ const db=await bkDB(); return new Promise((res,rej)=>{ const tx=db.transaction("f","readwrite"); tx.objectStore("f").put(v,key); tx.oncomplete=()=>res(); tx.onerror=()=>rej(tx.error); }); }
+function bkBuild(){
+  const P=[];
+  const fbCh=new Set(BK.hdr?BK.hdr.pages.map(p=>+p.k.slice(0,2)):[]);
+  const chs=[...new Set([...fbCh,...Object.keys(BK.pdfs).map(Number)])].sort((x,y)=>x-y);
+  chs.forEach(ch=>{
+    if(BK.pdfs[ch]){ const n=BK.pdfs[ch].n; for(let j=1;j<=n;j++) P.push({k:pad2(ch)+"-"+pad2(j),ch,j,n,src:"pdf",p:BOOK_POFF[ch]&&BK.pdfs[ch].n===BOOK_PCOUNT[ch]?BOOK_POFF[ch]+j:null}); }
+    else { const L=BK.hdr.pages.filter(p=>+p.k.slice(0,2)===ch); L.forEach((p,i)=>P.push({k:p.k,ch,j:i+1,n:L.length,src:"fb",o:p.o,l:p.l,p:p.p||null})); }
+  });
+  BK.pages=P; return P.length>0;
+}
+function bkLoad(){ if(BK.pages&&BK.pages.length) return Promise.resolve(true);
+  if(!BK.loading) BK.loading=bkAll().then(all=>{ const v=all.book; if(v&&v.blob&&v.hdr){ BK.blob=v.blob; BK.hdr=v.hdr; }
+    Object.entries(all).forEach(([k,v])=>{ if(k.startsWith("pdf-")&&v&&v.blob) BK.pdfs[+k.slice(4)]=v; }); return bkBuild(); }).catch(()=>false).finally(()=>{ BK.loading=null; });
+  return BK.loading; }
 // 本データの形式：先頭8バイト "FEBOOK1\n"、4バイト（ヘッダの長さ）、ヘッダ（JSON）、ページ画像（JPEG）が続く
 async function bkParse(file){
   const head=new Uint8Array(await file.slice(0,12).arrayBuffer());
@@ -5021,16 +5038,62 @@ async function bkParse(file){
   const hdr=JSON.parse(new TextDecoder().decode(await file.slice(12,12+n).arrayBuffer()));
   hdr.base=12+n; return hdr;
 }
+// PDFを読むための部品（pdf.js）。オフライン版は端末に保存したもの、それ以外はネットから読む
+let PDFJS=null;
+function loadPdfjs(){
+  if(PDFJS) return PDFJS;
+  const loc=/^https?:$/.test(location.protocol)&&/github\.io$|localhost$/.test(location.hostname);
+  const base=loc?"pdfjs/":"https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/legacy/build/";
+  PDFJS=new Promise((res,rej)=>{ if(window.pdfjsLib) return res(window.pdfjsLib); const s=document.createElement("script"); s.src=base+"pdf.min.js"; s.onload=()=>res(window.pdfjsLib); s.onerror=()=>rej(new Error("PDFを読む部品を読み込めませんでした（電波のある所で一度開いてください）")); document.head.appendChild(s); })
+   .then(async lib=>{ try{ const t=await (await fetch(base+"pdf.worker.min.js")).text(); lib.GlobalWorkerOptions.workerSrc=URL.createObjectURL(new Blob([t],{type:"text/javascript"})); }catch(e){ lib.GlobalWorkerOptions.workerSrc=base+"pdf.worker.min.js"; } return lib; })
+   .catch(e=>{ PDFJS=null; throw e; });
+  return PDFJS;
+}
+async function pdfOpen(blob){ const lib=await loadPdfjs(); return lib.getDocument({data:new Uint8Array(await blob.arrayBuffer())}).promise; }
+async function bkImportPdfs(files){
+  const out=[], used=new Set(Object.keys(BK.pdfs).map(Number));
+  for(const f of files){
+    const doc=await pdfOpen(f), n=doc.numPages; doc.destroy();
+    const m=(f.name||"").match(/(\d{1,2})/); let ch=m?+m[1]:null;
+    if(!(ch&&(!BOOK_PCOUNT[ch]||BOOK_PCOUNT[ch]===n))){
+      const cand=Object.keys(BOOK_PCOUNT).map(Number).filter(c=>BOOK_PCOUNT[c]===n);
+      ch=cand.find(c=>!used.has(c))||cand[0]||(ch&&ch>13?ch:null);
+      if(!ch){ ch=14; while(used.has(ch)) ch++; }
+    }
+    used.add(ch);
+    await bkPut("pdf-"+ch,{blob:f,n,name:f.name,at:Date.now()});
+    BK.pdfs[ch]={blob:f,n,name:f.name}; delete BK.docs[ch]; out.push(`第${ch}章（${n}ページ）`);
+  }
+  try{ if(navigator.storage&&navigator.storage.persist) await navigator.storage.persist(); }catch(e){}
+  BK.rend.clear(); bkBuild(); return out;
+}
 async function bkImport(file){
+  if(/\.pdf$/i.test(file.name)||file.type==="application/pdf") return bkImportPdfs([file]);
   const hdr=await bkParse(file);
   try{ if(navigator.storage&&navigator.storage.persist) await navigator.storage.persist(); }catch(e){}
-  await bkPut({blob:file,hdr,at:Date.now(),name:file.name});
-  const v=await bkGet(); if(!v||!v.blob) throw new Error("保存できませんでした（空き容量を確認してください）");
-  BK.hdr=v.hdr; BK.blob=v.blob; return hdr;
+  await bkPut("book",{blob:file,hdr,at:Date.now(),name:file.name});
+  BK.hdr=hdr; BK.blob=file; BK.rend.clear(); bkBuild(); return [`本データ ${hdr.pages.length}ページ`];
 }
-const bkIndex=key=>BK.hdr?BK.hdr.pages.findIndex(p=>p.k===key):-1;
-const bkFirstOf=ch=>BK.hdr?BK.hdr.pages.findIndex(p=>+p.k.slice(0,2)===ch):-1;
+const bkIndex=key=>BK.pages?BK.pages.findIndex(p=>p.k===key):-1;
+const bkFirstOf=ch=>BK.pages?BK.pages.findIndex(p=>p.ch===ch):-1;
 function bkTermKey(t){ return BOOKIDX[t]||null; }
+// PDFのページを画像にする（まわりの白い余白は切り取る）
+async function bkPdfURL(p){
+  if(BK.rend.has(p.k)) return BK.rend.get(p.k);
+  if(!BK.docs[p.ch]) BK.docs[p.ch]=pdfOpen(BK.pdfs[p.ch].blob).catch(e=>{ delete BK.docs[p.ch]; throw e; });
+  const doc=await BK.docs[p.ch], pg=await doc.getPage(p.j);
+  const v0=pg.getViewport({scale:1}), sc=Math.min(12,1800/v0.width), vp=pg.getViewport({scale:sc});
+  const cv=document.createElement("canvas"); cv.width=Math.ceil(vp.width); cv.height=Math.ceil(vp.height);
+  const cx=cv.getContext("2d"); await pg.render({canvasContext:cx,viewport:vp}).promise;
+  let x0=cv.width,y0=cv.height,x1=0,y1=0; const d=cx.getImageData(0,0,cv.width,cv.height).data, W=cv.width;
+  for(let y=0;y<cv.height;y+=3) for(let x=0;x<W;x+=3){ const i=(y*W+x)*4; if(d[i]<200||d[i+1]<200||d[i+2]<200){ if(x<x0)x0=x; if(x>x1)x1=x; if(y<y0)y0=y; if(y>y1)y1=y; } }
+  let out=cv; if(x1>x0&&y1>y0){ const m=12; x0=Math.max(0,x0-m); y0=Math.max(0,y0-m); x1=Math.min(W,x1+m); y1=Math.min(cv.height,y1+m);
+    const w=x1-x0, h=y1-y0, s2=Math.min(1,1100/w); out=document.createElement("canvas"); out.width=Math.round(w*s2); out.height=Math.round(h*s2);
+    const ox=out.getContext("2d"); ox.fillStyle="#fff"; ox.fillRect(0,0,out.width,out.height); ox.drawImage(cv,x0,y0,w,h,0,0,out.width,out.height); }
+  const blob=await new Promise(r=>out.toBlob(r,"image/jpeg",0.8)); const url=URL.createObjectURL(blob);
+  BK.rend.set(p.k,url); if(BK.rend.size>8){ const [k,u]=BK.rend.entries().next().value; BK.rend.delete(k); URL.revokeObjectURL(u); }
+  return url;
+}
 // 用語→本のページ、章→本の章の最初
 async function openBook(opt){
   $("#bookv").hidden=false; document.body.style.overflow="hidden";
@@ -5040,37 +5103,51 @@ async function openBook(opt){
   if(opt&&opt.term){ const k=bkTermKey(opt.term); if(k) i=bkIndex(k); }
   if(i<0&&opt&&opt.ch&&BOOK_CH[opt.ch]) i=bkFirstOf(BOOK_CH[opt.ch]);
   if(i<0&&opt&&opt.i!=null) i=opt.i;
-  BK.term=opt&&opt.term&&bkTermKey(opt.term)?opt.term:null;
+  BK.term=opt&&opt.term&&bkTermKey(opt.term)&&bkIndex(bkTermKey(opt.term))>=0?opt.term:null;
   bkShow(i<0?0:i);
 }
 function closeBook(){ $("#bookv").hidden=true; document.body.style.overflow=""; if(BK.url){ URL.revokeObjectURL(BK.url); BK.url=null; } }
-function bkShow(i){
-  const P=BK.hdr.pages; i=Math.max(0,Math.min(P.length-1,i)); BK.cur=i; const p=P[i], ch=+p.k.slice(0,2);
-  const inCh=P.filter(x=>+x.k.slice(0,2)===ch), j=inCh.indexOf(p)+1;
-  if(BK.url) URL.revokeObjectURL(BK.url);
-  BK.url=URL.createObjectURL(BK.blob.slice(BK.hdr.base+p.o,BK.hdr.base+p.o+p.l,"image/jpeg"));
-  $("#bv-body").innerHTML=`
-    ${BK.term&&bkTermKey(BK.term)===p.k?`<div class="bv-term">「${esc(BK.term)}」が載っているページ</div>`:""}
-    <div class="bv-img ${BK.zoom?"zoom":""}"><img src="${BK.url}" alt="本 第${ch}章 ${j}ページ目"></div>`;
+async function bkShow(i){
+  const P=BK.pages; i=Math.max(0,Math.min(P.length-1,i)); BK.cur=i; const p=P[i], ch=p.ch;
   $("#bv-title").textContent=`第${ch}章 ${BOOK_TITLE[ch]||""}`;
-  $("#bv-pos").textContent=`${j} / ${inCh.length}${p.p?`　p.${p.p}`:""}`;
+  $("#bv-pos").textContent=`${p.j} / ${p.n}${p.p?`　p.${p.p}`:""}`;
   $("#bv-prev").disabled=i===0; $("#bv-next").disabled=i===P.length-1;
   $("#bv-zoom").textContent=BK.zoom?"縮小":"拡大";
-  $("#bv-ch").innerHTML=BOOK_TITLE.map((t,n)=>n&&bkFirstOf(n)>=0?`<option value="${n}" ${n===ch?"selected":""}>第${n}章 ${esc(t)}</option>`:"").join("");
-  $("#bv-ctl").hidden=false; $("#bv-zoom").hidden=false; $("#bv-body").scrollTop=0;
+  $("#bv-ch").innerHTML=[...new Set(P.map(x=>x.ch))].map(n=>`<option value="${n}" ${n===ch?"selected":""}>第${n}章 ${esc(BOOK_TITLE[n]||"")}</option>`).join("");
+  $("#bv-ctl").hidden=false; $("#bv-zoom").hidden=false; $("#bv-add").hidden=false;
+  const head=BK.term&&bkTermKey(BK.term)===p.k?`<div class="bv-term">「${esc(BK.term)}」が載っているページ</div>`:"";
+  let url;
+  if(p.src==="fb"){ if(BK.url) URL.revokeObjectURL(BK.url); BK.url=url=URL.createObjectURL(BK.blob.slice(BK.hdr.base+p.o,BK.hdr.base+p.o+p.l,"image/jpeg")); }
+  else {
+    $("#bv-body").innerHTML=head+`<div class="bv-wait">ページを読み込み中…</div>`;
+    try{ url=await bkPdfURL(p); }catch(e){ $("#bv-body").innerHTML=head+`<div class="bv-wait">${esc(e&&e.message||"読み込めませんでした")}</div>`; return; }
+    if(BK.cur!==i) return;
+    const nx=P[i+1]; if(nx&&nx.src==="pdf") setTimeout(()=>bkPdfURL(nx).catch(()=>{}),50);
+  }
+  $("#bv-body").innerHTML=`${head}<div class="bv-img ${BK.zoom?"zoom":""}"><img src="${url}" alt="本 第${ch}章 ${p.j}ページ目"></div>`;
+  $("#bv-body").scrollTop=0;
 }
 function bkRenderImport(opt){
-  $("#bv-title").textContent="本のページを見る"; $("#bv-pos").textContent=""; $("#bv-ctl").hidden=true; $("#bv-zoom").hidden=true;
+  const have=BK.pages&&BK.pages.length;
+  $("#bv-title").textContent=have?"本のページを追加する":"本のページを見る"; $("#bv-pos").textContent=""; $("#bv-ctl").hidden=true; $("#bv-zoom").hidden=true; $("#bv-add").hidden=true;
+  const list=Object.entries(BK.pdfs).map(([c,v])=>`第${c}章（${v.n}ページ）`).concat(BK.hdr?[`本データ（${BK.hdr.pages.length}ページ）`]:[]);
   $("#bv-body").innerHTML=`<div class="bv-imp">
-    <p>本のページを見るには、最初に1回だけ「本データ」ファイルを取り込みます。</p>
-    <ol><li>チャットで受け取った <b>fe-book.febook</b> を「ファイル」アプリに保存する</li><li>下のボタンを押して、そのファイルを選ぶ</li></ol>
-    <p class="small-muted">取り込んだ本のページは、この端末の中にだけ保存されます。ネットには送られず、ほかの人は見られません。（約60MB使います）</p>
-    <label class="btn primary bv-pick">本データを選ぶ<input type="file" id="bv-file" hidden></label>
+    <p><b>本のPDFを選ぶ</b>：チャットに送ったPDF（1.pdf〜13.pdf など）を、まとめて選べます。マネジメント系・ストラテジ系のPDFもここから足せます。</p>
+    <label class="btn primary bv-pick">PDFを選ぶ（複数OK）<input type="file" id="bv-pdf" accept="application/pdf,.pdf" multiple hidden></label>
+    <p style="margin-top:14px">または、チャットで受け取った <b>fe-book.febook</b>（全13章をまとめた軽いファイル）を選ぶ：</p>
+    <label class="btn bv-pick">本データを選ぶ<input type="file" id="bv-file" hidden></label>
+    <p class="small-muted">取り込んだページは、この端末の中にだけ保存されます。ネットには送られず、ほかの人は見られません。</p>
+    ${list.length?`<p class="small-muted">取り込み済み：${esc(list.join("、"))}</p>`:""}
+    ${have?`<button class="btn small" id="bv-back">← ページに戻る</button>`:""}
     <div id="bv-msg" class="small-muted" aria-live="polite"></div></div>`;
-  $("#bv-file").addEventListener("change",async e=>{ const f=e.target.files[0]; if(!f) return; $("#bv-msg").textContent="取り込み中…";
-    try{ const h=await bkImport(f); toast(`本のページ ${h.pages.length}枚を取り込みました`); openBook(opt); }
-    catch(err){ $("#bv-msg").textContent="取り込めませんでした："+(err&&err.message||err); } });
+  const done=async(fn)=>{ $("#bv-msg").textContent="取り込み中…（大きいPDFは少し時間がかかります）";
+    try{ const r=await fn(); toast("取り込みました："+r.join("、")); openBook(opt||{}); }
+    catch(err){ $("#bv-msg").textContent="取り込めませんでした："+(err&&err.message||err); } };
+  $("#bv-pdf").addEventListener("change",e=>{ const fs=[...e.target.files]; if(fs.length) done(()=>bkImportPdfs(fs)); });
+  $("#bv-file").addEventListener("change",e=>{ const f=e.target.files[0]; if(f) done(()=>bkImport(f)); });
+  const bb=$("#bv-back"); if(bb) bb.addEventListener("click",()=>bkShow(BK.cur));
 }
+$("#bv-add").addEventListener("click",()=>bkRenderImport({i:BK.cur}));
 $("#bv-close").addEventListener("click",closeBook);
 $("#bv-prev").addEventListener("click",()=>{ BK.term=null; bkShow(BK.cur-1); });
 $("#bv-next").addEventListener("click",()=>{ BK.term=null; bkShow(BK.cur+1); });
@@ -5079,10 +5156,9 @@ $("#bv-ch").addEventListener("change",e=>{ BK.term=null; bkShow(bkFirstOf(+e.tar
 document.addEventListener("keydown",e=>{ if($("#bookv").hidden) return; if(e.key==="Escape") closeBook(); else if(e.key==="ArrowRight") $("#bv-next").click(); else if(e.key==="ArrowLeft") $("#bv-prev").click(); });
 (()=>{ let x0=null,y0=null; const b=$("#bv-body");
   b.addEventListener("touchstart",e=>{ if(BK.zoom||e.touches.length!==1){x0=null;return;} x0=e.touches[0].clientX; y0=e.touches[0].clientY; },{passive:true});
-  b.addEventListener("touchend",e=>{ if(x0==null||!BK.hdr) return; const dx=e.changedTouches[0].clientX-x0, dy=e.changedTouches[0].clientY-y0; x0=null;
+  b.addEventListener("touchend",e=>{ if(x0==null||!BK.pages) return; const dx=e.changedTouches[0].clientX-x0, dy=e.changedTouches[0].clientY-y0; x0=null;
     if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5){ BK.term=null; bkShow(BK.cur+(dx<0?1:-1)); } },{passive:true}); })();
 document.addEventListener("click",e=>{ const b=e.target.closest&&e.target.closest("[data-book]"); if(!b) return; e.preventDefault(); const [kind,v]=b.dataset.book.split("|"); openBook(kind==="t"?{term:v,ch:b.dataset.bookCh}:{ch:v}); });
-async function bkManageHTML(){ const v=await bkGet().catch(()=>null); return v?`本データ：${v.hdr.pages.length}ページ（${new Date(v.at).toLocaleDateString()}に取り込み）`:"本データ：まだ取り込んでいません"; }
 
 /* ---- 参考書で用語の場所まで移動して、色を付ける ---- */
 function termCands(t){
