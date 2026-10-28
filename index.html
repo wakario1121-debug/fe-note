@@ -9,7 +9,7 @@
 </head><body>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Zen+Kaku+Gothic+New:wght@700;900&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Zen+Kaku+Gothic+New:wght@700;900&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
 /* Layout: 参考書の「本文＋蛍光ペン」を軸にした一画面アプリ。スマホでは下部タブ、PCでは上部タブ */
 :root{
@@ -5127,6 +5127,13 @@ initCloud();
 <script>
 // オフライン用：一度開いたらファイルを端末に保存して、電波がなくても開けるようにする
 if("serviceWorker" in navigator){ addEventListener("load",()=>{ navigator.serviceWorker.register("sw.js").catch(()=>{}); }); }
+// ホームの一番下に「圏外でも使えるか」を出す
+async function offState(){ try{ if(!("serviceWorker" in navigator)) return "no"; const r=await navigator.serviceWorker.getRegistration(); if(!r||!r.active) return "prep";
+  const ks=await caches.keys(); for(const k of ks){ if(k.startsWith("fe-")&&k!=="fe-fonts"){ const c=await caches.open(k); if(await c.match("index.html")) return "ok"; } } return "prep"; }catch(e){ return "prep"; } }
+let OFF_ST="prep"; const offMsg={ok:"✓ 圏外でも開けます（この端末に保存済み）",prep:"圏外で使う準備中です。電波のある所で、このまま1分ほど開いておいてください",no:"この画面では圏外で使えません。ホーム画面に追加したアプリから開いてください"};
+function offPaint(){ const v=document.getElementById("v-home"); if(!v) return; let el=document.getElementById("off-st"); if(!el||el.parentNode!==v){ el=document.createElement("div"); el.id="off-st"; el.style.cssText="text-align:center;font-size:12.5px;color:var(--muted);margin:14px 0 4px"; v.appendChild(el); } if(el.textContent!==offMsg[OFF_ST]) el.textContent=offMsg[OFF_ST]; }
+(function tick(){ offState().then(s=>{ OFF_ST=s; offPaint(); if(s!=="ok") setTimeout(tick,4000); }); })();
+new MutationObserver(()=>offPaint()).observe(document.getElementById("v-home"),{childList:true});
 try{ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist(); }catch(e){}
 </script>
 </body></html>
