@@ -241,6 +241,8 @@ main{max-width:1120px;margin:0 auto;padding:20px 16px 64px}
 .vv-sync{max-width:820px;margin:8px auto}
 .vv-sync-h{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
 .vv-sync-b{display:flex;gap:6px;flex-wrap:wrap}
+.hit-links{display:inline-flex;gap:6px;flex-wrap:wrap;margin:4px 0 0 6px;vertical-align:middle}
+.hit-links .btn{text-decoration:none}
 .bv-wait{max-width:520px;margin:40px auto;text-align:center;color:var(--muted)}
 .bv-open{margin-top:8px}
 mark.hit,.hit-on{background:#FFE24D!important;color:#2a2200!important;border-radius:3px;box-shadow:0 0 0 2px #FFE24D}
@@ -5198,7 +5200,9 @@ function termCands(t){
 function jumpTerm(t){
   const body=$("#v-book .ch-body"); if(!body||!t) return false;
   const stopAt=[...body.querySelectorAll("h3")].find(h=>h.textContent==="この章の重要用語");
-  const before=n=>!stopAt||(n.compareDocumentPosition(stopAt)&Node.DOCUMENT_POSITION_FOLLOWING);
+  const firstH=body.querySelector("h3");
+  // 章のはじめの「この章のゴール」は飛ばし、最初の節から探す
+  const before=n=>(!stopAt||(n.compareDocumentPosition(stopAt)&Node.DOCUMENT_POSITION_FOLLOWING))&&(!firstH||firstH===stopAt||(n.compareDocumentPosition(firstH)&Node.DOCUMENT_POSITION_PRECEDING));
   let hit=null;
   for(const c of termCands(t)){
     const b=[...body.querySelectorAll("b, .mk")].find(el=>before(el)&&!el.closest("svg,figure")&&el.textContent.includes(c));
@@ -5210,6 +5214,13 @@ function jumpTerm(t){
   if(!hit){ const d=[...body.querySelectorAll(".terms > div")].find(x=>x.querySelector("b").textContent===t); if(d) hit={el:d,c:t}; }
   if(!hit) return false;
   hit.el.classList.add("hit-on");
+  // 色を付けた用語のすぐ横に「動画のこの場面」「本のページ」を出す
+  { let tv=termVid(t), bk=bkTermKey(t);
+    if(tv==null||!bk){ const hs=[...body.querySelectorAll("h3")]; let si=-1; hs.forEach((h,i)=>{ if(h.compareDocumentPosition(hit.el)&Node.DOCUMENT_POSITION_FOLLOWING) si=i; });
+      const cid=S.ch, L=si>=0?secLink(cid,si):[null,null]; if(si>=0&&hs[si].textContent!=="この章の重要用語"){ if(tv==null) tv=L[1]; if(!bk&&L[0]) bk=null, hit.secKey=L[0]; } }
+    if(tv!=null||bk||hit.secKey){ const sp=document.createElement("span"); sp.className="hit-links";
+      sp.innerHTML=`${tv!=null?vidLinkHTML(tv,"この場面"):""}${bk?`<button class="btn small" data-book="t|${esc(t)}">本 ${pageLabel(bk)}</button>`:hit.secKey?`<button class="btn small" data-book="k|${hit.secKey}">本 ${pageLabel(hit.secKey)}</button>`:""}`;
+      (hit.el.closest("li,p,td,.terms > div")||hit.el).appendChild(sp); } }
   // 説明している段落（または表の行）ごと目立たせる
   const blk=hit.el.closest("li,tr,p,.terms > div,.point,.formula"); if(blk) blk.classList.add("hit-blk");
   setTimeout(()=>{ hit.el.scrollIntoView({block:"center"}); },60);
@@ -5251,7 +5262,7 @@ function pageTime(k){ const sc=pageSec(k); if(!sc) return null; const v=secLink(
 const vidLinkHTML=(s,label)=>s==null?"":`<a class="btn small" href="${ytUrl(VID12,s)}" target="_blank" rel="noopener">▶ ${label||"動画"} ${fmtT(s)}</a>`;
 const pageLabel=k=>{ const ch=+k.slice(0,2), j=+k.slice(3), o=BOOK_POFF[ch]; return o?`p.${o+j}`:`第${ch}章 ${j}ページ目`; };
 // 用語 → 動画の場面（その用語を説明している節の場面）
-function termVid(t){ const s=TERMSEC[t]; return s?secLink(s[0],s[1])[1]:null; }
+function termVid(t){ const k=BOOKIDX[t]; if(k){ const v=pageTime(k); if(v!=null) return v; } const s=TERMSEC[t]; return s?secLink(s[0],s[1])[1]:null; }
 // 本のページ → アプリの参考書の節（その章で、本の開始ページがそのページ以前の最後の節）
 function pageSec(k){
   const ch=+k.slice(0,2), id=Object.keys(BOOK_CH).find(x=>BOOK_CH[x]===ch); if(!id) return null;
