@@ -231,6 +231,9 @@ main{max-width:1120px;margin:0 auto;padding:20px 16px 64px}
 .bv-imp{max-width:520px;margin:20px auto;background:var(--surface);border-radius:14px;padding:18px;line-height:1.8}
 .bv-imp ol{padding-left:1.3em}
 .bv-pick{display:inline-block;margin:6px 0;cursor:pointer}
+.sec-links{display:flex;gap:6px;flex-wrap:wrap;margin:-4px 0 10px}
+.sec-links .btn,.jump-bar a.btn,.bv-foot .btn{text-decoration:none}
+.bv-foot{max-width:820px;margin:10px auto 4px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .bv-wait{max-width:520px;margin:40px auto;text-align:center;color:var(--muted)}
 .bv-open{margin-top:8px}
 mark.hit,.hit-on{background:#FFE24D!important;color:#2a2200!important;border-radius:3px;box-shadow:0 0 0 2px #FFE24D}
@@ -4251,6 +4254,7 @@ function renderBook(){
     if(!S.read[c.id]){ S.read[c.id]=true; save(); if((getDay(today()).n||{}).read) act("r"); else markNight("read"); }
     openQuiz(qn?c.id:"random");
   });
+  addSecLinks(c);
   bindFlow($("#v-book"));
   bindJumps($("#v-book"));
 }
@@ -4397,7 +4401,7 @@ function renderCards(){
         <div class="lv" title="覚え具合">${[1,2,3,4,5].map(k=>`<i class="${box>=k?"on":""}"></i>`).join("")}</div>
       </button>
       ${deck.flipped?`<div class="explain">
-        <div class="ex-btns">${sampleFn&&!sampleOff?`<button class="btn" id="f-explain" ${EXPL[x.id]&&EXPL[x.id].loading?"disabled":""}>${EXPL[x.id]?"もう一度説明してもらう":"もっとやさしく説明して"}</button>`:""}${ANIMCARD[x.id]?animBtn(ANIMCARD[x.id],"アニメで見る"):""}<button class="btn" data-open-ch="${x.c}" data-term="${esc(x.t)}">参考書で確認</button>${BOOK_CH[x.c]?`<button class="btn" data-book="t|${esc(x.t)}" data-book-ch="${x.c}">本のページ</button>`:""}</div>
+        <div class="ex-btns">${sampleFn&&!sampleOff?`<button class="btn" id="f-explain" ${EXPL[x.id]&&EXPL[x.id].loading?"disabled":""}>${EXPL[x.id]?"もう一度説明してもらう":"もっとやさしく説明して"}</button>`:""}${ANIMCARD[x.id]?animBtn(ANIMCARD[x.id],"アニメで見る"):""}<button class="btn" data-open-ch="${x.c}" data-term="${esc(x.t)}">参考書で確認</button>${BOOK_CH[x.c]?`<button class="btn" data-book="t|${esc(x.t)}" data-book-ch="${x.c}">本のページ</button>`:""}${vidLinkHTML(termVid(x.t),"動画")}</div>
         ${EXPL[x.id]?`<div class="ex-text" id="ex-text">${esc(EXPL[x.id].text||"考え中…")}</div>`:""}
         ${sampleMsg?`<div class="small-muted" style="text-align:center">${esc(sampleMsg)}</div>`:""}
       </div>`:""}
@@ -5004,6 +5008,8 @@ document.addEventListener("keydown",e=>{ if(!$("#player").hidden&&e.key==="Escap
 document.addEventListener("click",e=>{ const b=e.target.closest&&e.target.closest("[data-anim]"); if(b){ e.preventDefault(); e.stopPropagation(); openAnim(b.dataset.anim); } },true);
 
 const BOOKIDX={"ビット": "01-26", "バイト": "01-02", "ナノ秒": "04-15", "基数": "01-07", "循環小数": "01-06", "2の補数": "01-21", "1の補数": "01-21", "論理シフト": "01-24", "算術シフト": "01-26", "ベン図": "02-01", "排他的論理和（XOR）": "02-12", "NAND": "02-05", "ド・モルガンの法則": "02-12", "半加算器": "02-13", "全加算器": "02-14", "受理状態": "02-24", "教師あり学習": "02-29", "教師なし学習": "02-30", "強化学習": "02-31", "ディープラーニング": "02-33", "活性化関数": "02-32", "基盤モデル": "02-35", "ファインチューニング": "02-35", "プロンプトエンジニアリング": "02-35", "ハルシネーション": "02-34", "スタック": "03-02", "キュー": "03-03", "連結リスト": "03-05", "2分探索木": "03-09", "間順（中間順）": "06-19", "トレース表": "03-16", "引数": "03-33", "戻り値": "03-17", "クイックソート": "03-26", "2分探索": "03-09", "再入可能（リエントラント）": "03-41", "再帰（リカーシブ）": "03-41", "Javaサーブレット": "03-43", "Javaアプレット": "03-43", "XML": "03-45", "CSS": "03-51", "Ajax": "03-48", "クロック周波数": "04-01", "MIPS": "04-01", "マルチコアプロセッサ": "04-04", "プログラムカウンタ": "04-11", "フェッチ": "04-08", "間接アドレス指定": "04-10", "内部割込み": "04-12", "ヒット率": "04-22", "実効アクセス時間": "04-23", "ライトスルー": "04-24", "ライトバック": "04-25", "メモリインタリーブ": "04-23", "デイジーチェーン": "04-34", "デバイスドライバ": "04-34", "dpi": "04-36", "Webシステム": "05-03", "3層クライアントサーバ": "05-02", "デュアルシステム": "05-05", "デュプレックスシステム": "05-05", "ホットスタンバイ": "05-06", "フォールトトレラント": "05-07", "フェールソフト": "05-16", "フールプルーフ": "05-16", "ストライピング": "05-08", "ミラーリング": "05-09", "RAID5": "05-08", "スループット": "05-10", "ターンアラウンドタイム": "05-11", "ベンチマークテスト": "05-11", "スケールアウト": "05-12", "スケールアップ": "05-12", "MTBF": "05-23", "MTTR": "05-23", "稼働率": "05-21", "SAN": "08-08", "スプーリング": "06-03", "ディスパッチ": "06-08", "ラウンドロビン": "06-08", "プリエンプティブ": "06-06", "デッドロック": "09-57", "仮想記憶": "06-08", "ページフォールト": "06-10", "LRU": "06-13", "スラッシング": "06-13", "絶対パス": "06-26", "相対パス": "06-26", "字句解析": "06-36", "リンカ": "06-36", "インタプリタ": "06-36", "静的テスト": "06-37", "統合開発環境（IDE）": "06-38", "揮発性メモリ": "07-02", "DRAM": "07-03", "SRAM": "07-03", "SDRAM": "07-03", "フラッシュメモリ": "07-03", "コンデンサ": "07-05", "フリップフロップ": "07-05", "チャタリング": "07-06", "ウォッチドッグタイマ": "04-13", "ラジオボタン": "08-02", "チェックボックス": "08-02", "コンボボックス": "08-03", "ユーザビリティ": "08-05", "マクロ機能": "08-07", "アクセシビリティ": "08-07", "ユニバーサルデザイン": "08-07", "アウトラインフォント": "08-09", "PCM": "08-10", "アンチエイリアシング": "08-12", "テクスチャマッピング": "08-13", "H.264/MPEG-4 AVC": "08-14", "AR": "11-31", "主キー": "09-14", "外部キー": "09-06", "E-R図": "09-08", "関数従属": "09-12", "第1正規形": "09-15", "第2正規形": "09-16", "第3正規形": "09-17", "射影": "09-45", "選択": "09-24", "結合": "09-32", "HAVING句": "09-35", "ビュー": "09-38", "インデックス": "09-40", "ストアドプロシージャ": "09-40", "原子性": "09-48", "ロールバック": "09-49", "ロールフォワード": "09-50", "チェックポイント": "09-59", "2相コミット": "09-44", "専有ロック": "09-54", "共有ロック": "09-54", "デッドロック（DB）": "09-57", "NoSQL": "09-41", "ルータ": "10-41", "スイッチングハブ": "10-40", "TCP": "10-38", "UDP": "10-23", "DNS": "10-33", "DHCP": "10-30", "ARP": "10-35", "NAPT": "10-29", "ブロードキャストアドレス": "10-22", "IPv6": "10-27", "パケット交換方式": "10-04", "Bcc": "10-45", "伝送効率": "10-02", "パリティチェック": "10-06", "CRC": "10-07", "ハミング符号": "10-12", "サブネットマスク": "10-20", "MACアドレス": "10-17", "ポート番号": "10-16", "プライベートIPアドレス": "10-29", "WAN": "10-13", "ハイブリッド暗号": "11-21", "SQLインジェクション": "11-15", "クロスサイトスクリプティング": "11-08", "DMZ": "11-47", "IPS": "11-46", "リスク移転": "11-36", "パスワードリスト攻撃": "11-04", "認証局": "11-30", "機密性": "11-40", "完全性": "11-42", "可用性": "11-40", "ソーシャルエンジニアリング": "11-02", "ランサムウェア": "11-05", "ブルートフォース攻撃": "11-04", "フィッシング": "11-06", "DNSキャッシュポイズニング": "11-15", "共通鍵暗号方式": "11-18", "公開鍵暗号方式": "11-18", "ハッシュ関数": "11-26", "リスク回避": "11-37", "ISMS": "11-39", "WAF": "11-46", "ペネトレーションテスト": "11-51", "ビヘイビア法": "11-49", "ファジング": "11-52", "スタブ": "12-38", "ドライバ": "12-38", "モジュール結合度": "12-12", "データ結合": "12-13", "インスペクション": "13-11", "共通フレーム": "12-02", "カプセル化": "12-19", "継承": "12-20", "多相性": "12-21", "汎化": "12-27", "集約": "12-25", "シーケンス図": "12-23", "判定条件網羅": "12-33", "結合テスト": "12-43", "スクラム": "13-03", "テスト駆動開発": "13-11", "CI": "09-59", "ウォーターフォールモデル": "13-01", "プロトタイピングモデル": "13-11", "アジャイル開発": "13-02", "プロダクトオーナー": "13-03", "スクラムマスター": "13-03", "レトロスペクティブ": "13-11", "ペアプログラミング": "13-06", "リファクタリング": "13-07", "リバースエンジニアリング": "13-05", "マッシュアップ": "13-06", "ローコード開発": "13-04", "ソフトウェア構成管理": "13-07", "逆ポーランド記法": "02-22", "有限オートマトン": "02-23", "パイプライン": "04-27", "フェールセーフ": "05-16", "2相ロック方式": "09-54", "ディジタル署名": "11-28", "多要素認証": "11-54"};
+const SECLINK={"kiso":[["01-01",106],["01-05",106],["01-07",690],["01-11",690],["01-21",1715],["01-23",2177],["01-32",2889]],"kiso2":[["02-01",3365],["02-07",4633],["02-21",6421],["02-23",6421],["02-29",18593],["02-33",18593],["02-30",18593],["02-36",5084]],"algo":[["03-01",27123],["03-13",27743],["03-25",27743],["03-34",28676],["03-41",29351],["03-43",29351],[null,27123]],"hw":[["04-01",9125],["04-05",9125],[null,9125],["04-19",10992],["04-29",12681],["04-35",12681]],"sys":[["05-01",31298],["05-05",31298],["05-08",31298],["05-11",31965],["05-17",31965],["05-16",31298]],"sw":[["06-01",13359],["06-05",13674],["06-08",14195],["06-19",14923],["06-27",14923],["06-33",null],["06-37",null]],"hwlogic":[["07-01",10992],["07-05",4633],[null,null],[null,8464]],"hi":[["08-01",34402],["08-05",34402],["08-09",15258],["08-12",15258]],"db":[["09-01",15486],["09-03",15486],["09-09",15840],["09-23",17674],["09-26",17674],["09-47",16755],["09-51",16755],[null,null]],"nw":[["10-01",19106],["10-04",19106],["10-06",19106],["10-13",19106],["10-15",20806],["10-19",20806],["10-29",21530],["10-31",21530],["10-37",19466],["10-43",21530],[null,21530]],"sec":[["11-01",22126],["11-03",22556],["11-17",23974],["11-27",23974],["11-35",22126],["11-39",22126],["11-43",24992],[null,26321]],"dev":[["12-01",33137],["12-06",33137],["12-12",34931],["12-17",30022],["12-29",35307],["12-31",35307],[null,35307]],"devm":[["13-01",33858],["13-02",33858],["13-03",33858],["13-06",33858],["13-05",null],["13-04",null],["13-07",null],[null,null]]};
+const TERMSEC={"ビット":["kiso",0],"バイト":["kiso",0],"接頭語":["kiso",0],"ナノ秒":["kiso",0],"基数":["kiso",1],"循環小数":["kiso",1],"2の補数":["kiso",4],"1の補数":["kiso",4],"論理シフト":["kiso",5],"算術シフト":["kiso",5],"桁落ち":["kiso",6],"情報落ち":["kiso",6],"ベン図":["kiso2",0],"排他的論理和（XOR）":["kiso2",0],"NAND":["kiso2",0],"対偶":["kiso2",0],"ド・モルガンの法則":["kiso2",1],"半加算器":["kiso2",1],"全加算器":["kiso2",1],"逆ポーランド記法":["kiso2",2],"受理状態":["kiso2",3],"教師あり学習":["kiso2",4],"教師なし学習":["kiso2",4],"強化学習":["kiso2",4],"ディープラーニング":["kiso2",4],"活性化関数":["kiso2",4],"GAN":["kiso2",5],"LLM":["kiso2",5],"基盤モデル":["kiso2",5],"ファインチューニング":["kiso2",5],"プロンプトエンジニアリング":["kiso2",5],"ハルシネーション":["kiso2",5],"プロンプトインジェクション":["kiso2",5],"過学習":["kiso2",6],"交差検証":["kiso2",6],"擬似相関":["kiso2",7],"第1種の誤り":["kiso2",7],"ハフマン符号":["kiso2",7],"データレイク":["kiso2",7],"スタック":["algo",0],"キュー":["algo",0],"連結リスト":["algo",0],"2分探索木":["algo",0],"間順（中間順）":["algo",0],"ヒープ":["algo",0],"ダイクストラ法":["algo",0],"2分探索":["algo",0],"トレース表":["algo",1],"引数":["algo",1],"戻り値":["algo",1],"クイックソート":["algo",2],"マージソート":["algo",2],"番兵":["algo",2],"O(n²)":["algo",2],"再入可能（リエントラント）":["algo",4],"再帰（リカーシブ）":["algo",4],"Javaサーブレット":["algo",4],"Javaアプレット":["algo",4],"XML":["algo",5],"CSS":["algo",5],"Ajax":["algo",5],"JSON":["algo",5],"クロック周波数":["hw",0],"CPI":["hw",0],"MIPS":["hw",0],"マルチコアプロセッサ":["hw",0],"プログラムカウンタ":["hw",1],"フェッチ":["hw",1],"内部割込み":["hw",1],"パイプライン":["hw",2],"分岐予測":["hw",2],"RISC":["hw",2],"ヒット率":["hw",3],"実効アクセス時間":["hw",3],"ライトスルー":["hw",3],"ライトバック":["hw",3],"メモリインタリーブ":["hw",3],"平均回転待ち時間":["hw",3],"ウェアレベリング":["hw",3],"デイジーチェーン":["hw",4],"デバイスドライバ":["hw",4],"プラグアンドプレイ":["hw",4],"DMA":["hw",4],"dpi":["hw",5],"Webシステム":["sys",0],"3層クライアントサーバ":["sys",0],"バッチ処理":["sys",0],"リアルタイム処理":["sys",0],"ホットスタンバイ":["sys",1],"フォールトトレラント":["sys",1],"フェールセーフ":["sys",1],"フェールソフト":["sys",1],"フールプルーフ":["sys",1],"ストライピング":["sys",2],"ミラーリング":["sys",2],"スループット":["sys",3],"ターンアラウンドタイム":["sys",3],"ベンチマークテスト":["sys",3],"スケールアウト":["sys",3],"スケールアップ":["sys",3],"ロードバランサ":["sys",3],"MTBF":["sys",4],"MTTR":["sys",4],"稼働率":["sys",4],"ライブマイグレーション":["sys",5],"NAS":["sys",5],"SAN":["sys",5],"SaaS":["sys",5],"スプーリング":["sw",0],"ディスパッチ":["sw",1],"ラウンドロビン":["sw",1],"プリエンプティブ":["sw",1],"デッドロック":["sw",1],"セマフォ":["sw",1],"仮想記憶":["sw",2],"ページフォールト":["sw",2],"LRU":["sw",2],"スラッシング":["sw",2],"絶対パス":["sw",3],"相対パス":["sw",3],"字句解析":["sw",5],"リンカ":["sw",5],"動的リンク":["sw",5],"インタプリタ":["sw",5],"静的テスト":["sw",5],"統合開発環境（IDE）":["sw",6],"GPL":["sw",6],"揮発性メモリ":["hwlogic",0],"DRAM":["hwlogic",0],"SRAM":["hwlogic",0],"SDRAM":["hwlogic",0],"フラッシュメモリ":["hwlogic",0],"コンデンサ":["hwlogic",0],"フリップフロップ":["hwlogic",0],"チャタリング":["hwlogic",1],"FPGA":["hwlogic",2],"パワーゲーティング":["hwlogic",2],"ウォッチドッグタイマ":["hwlogic",3],"フィードバック制御":["hwlogic",3],"LPWA":["hwlogic",3],"ラジオボタン":["hi",0],"チェックボックス":["hi",0],"コンボボックス":["hi",0],"ユーザビリティ":["hi",1],"マクロ機能":["hi",1],"アクセシビリティ":["hi",1],"ユニバーサルデザイン":["hi",1],"チェックディジット":["hi",1],"アウトラインフォント":["hi",2],"PCM":["hi",2],"標本化定理":["hi",2],"アンチエイリアシング":["hi",3],"テクスチャマッピング":["hi",3],"ベクタ画像":["hi",3],"加法混色":["hi",3],"H.264/MPEG-4 AVC":["hi",3],"AR":["hi",3],"主キー":["db",1],"外部キー":["db",1],"参照制約":["db",1],"E-R図":["db",2],"関数従属":["db",2],"第1正規形":["db",2],"第2正規形":["db",2],"第3正規形":["db",2],"ビュー":["db",2],"射影":["db",3],"選択":["db",3],"結合":["db",3],"HAVING句":["db",4],"インデックス":["db",4],"ストアドプロシージャ":["db",4],"左外部結合":["db",4],"原子性":["db",5],"ロールバック":["db",5],"ロールフォワード":["db",5],"チェックポイント":["db",5],"2相コミット":["db",5],"専有ロック":["db",6],"共有ロック":["db",6],"2相ロック方式":["db",6],"デッドロック（DB）":["db",6],"ドリルダウン":["db",7],"NoSQL":["db",7],"伝送効率":["nw",0],"パケット交換方式":["nw",1],"パリティチェック":["nw",2],"CRC":["nw",2],"ハミング符号":["nw",2],"VLAN":["nw",3],"CSMA/CA":["nw",3],"WAN":["nw",3],"ARP":["nw",4],"MACアドレス":["nw",4],"ポート番号":["nw",4],"ブロードキャストアドレス":["nw",5],"IPv6":["nw",5],"サブネットマスク":["nw",5],"DHCP":["nw",6],"NAPT":["nw",6],"プライベートIPアドレス":["nw",6],"DNS":["nw",7],"ルータ":["nw",8],"スイッチングハブ":["nw",8],"TCP":["nw",8],"UDP":["nw",8],"IMAP":["nw",8],"Cookie":["nw",9],"Bcc":["nw",9],"SNMP":["nw",10],"ソーシャルエンジニアリング":["sec",0],"SQLインジェクション":["sec",1],"クロスサイトスクリプティング":["sec",1],"パスワードリスト攻撃":["sec",1],"ファイルレスマルウェア":["sec",1],"ランサムウェア":["sec",1],"ブルートフォース攻撃":["sec",1],"フィッシング":["sec",1],"DNSキャッシュポイズニング":["sec",1],"ハイブリッド暗号":["sec",2],"共通鍵暗号方式":["sec",2],"公開鍵暗号方式":["sec",2],"認証局":["sec",3],"ハッシュ関数":["sec",3],"機密性":["sec",5],"完全性":["sec",5],"可用性":["sec",5],"ISMS":["sec",5],"DMZ":["sec",6],"IPS":["sec",6],"多要素認証":["sec",6],"FIDO":["sec",6],"3-2-1ルール":["sec",6],"DMARC":["sec",6],"ゼロトラスト":["sec",6],"WAF":["sec",6],"ペネトレーションテスト":["sec",6],"ビヘイビア法":["sec",6],"ファジング":["sec",6],"SBOM":["sec",7],"共通フレーム":["dev",0],"非機能要件":["dev",1],"モジュール結合度":["dev",2],"機能的強度":["dev",2],"データ結合":["dev",2],"カプセル化":["dev",3],"継承":["dev",3],"多相性":["dev",3],"汎化":["dev",3],"集約":["dev",3],"シーケンス図":["dev",3],"スタブ":["dev",4],"ドライバ":["dev",4],"回帰テスト":["dev",4],"結合テスト":["dev",4],"限界値分析":["dev",5],"同値分割":["dev",5],"判定条件網羅":["dev",5],"インスペクション":["dev",6],"信頼度成長曲線":["dev",6],"ウォーターフォールモデル":["devm",0],"プロトタイピングモデル":["devm",0],"スパイラルモデル":["devm",0],"アジャイル開発":["devm",0],"スクラム":["devm",2],"プロダクトオーナー":["devm",2],"スクラムマスター":["devm",2],"レトロスペクティブ":["devm",2],"テスト駆動開発":["devm",3],"ペアプログラミング":["devm",3],"リファクタリング":["devm",3],"リバースエンジニアリング":["devm",4],"マッシュアップ":["devm",4],"ローコード開発":["devm",5],"ソフトウェア構成管理":["devm",6],"CI":["devm",7],"マイクロサービス":["devm",7],"IaC":["devm",7],"CMMI":["devm",7]};
 /* ================= 本（PDF）のページを見る ================= */
 // 本のページの画像は「本データ」ファイルとして利用者が自分で取り込み、この端末の中（IndexedDB）にだけ保存する。ネットには送らない。
 const BOOK_CH={kiso:1,kiso2:2,algo:3,hw:4,sys:5,sw:6,hwlogic:7,hi:8,db:9,nw:10,sec:11,dev:12,devm:13};
@@ -5108,7 +5114,8 @@ async function openBook(opt){
   const ok=await bkLoad();
   if(!ok){ bkRenderImport(opt); return; }
   let i=-1;
-  if(opt&&opt.term){ const k=bkTermKey(opt.term); if(k) i=bkIndex(k); }
+  if(opt&&opt.key) i=bkIndex(opt.key);
+  if(i<0&&opt&&opt.term){ const k=bkTermKey(opt.term); if(k) i=bkIndex(k); }
   if(i<0&&opt&&opt.ch&&BOOK_CH[opt.ch]) i=bkFirstOf(BOOK_CH[opt.ch]);
   if(i<0&&opt&&opt.i!=null) i=opt.i;
   BK.term=opt&&opt.term&&bkTermKey(opt.term)&&bkIndex(bkTermKey(opt.term))>=0?opt.term:null;
@@ -5132,7 +5139,7 @@ async function bkShow(i){
     if(BK.cur!==i) return;
     const nx=P[i+1]; if(nx&&nx.src==="pdf") setTimeout(()=>bkPdfURL(nx).catch(()=>{}),50);
   }
-  $("#bv-body").innerHTML=`${head}<div class="bv-img ${BK.zoom?"zoom":""}"><img src="${url}" alt="本 第${ch}章 ${p.j}ページ目"></div>`;
+  $("#bv-body").innerHTML=`${head}<div class="bv-img ${BK.zoom?"zoom":""}"><img src="${url}" alt="本 第${ch}章 ${p.j}ページ目"></div>${bookFootHTML(p)}`;
   $("#bv-body").scrollTop=0;
 }
 function bkRenderImport(opt){
@@ -5167,7 +5174,7 @@ document.addEventListener("keydown",e=>{ if($("#bookv").hidden) return; if(e.key
   b.addEventListener("touchstart",e=>{ if(BK.zoom||e.touches.length!==1){x0=null;return;} x0=e.touches[0].clientX; y0=e.touches[0].clientY; },{passive:true});
   b.addEventListener("touchend",e=>{ if(x0==null||!BK.pages) return; const dx=e.changedTouches[0].clientX-x0, dy=e.changedTouches[0].clientY-y0; x0=null;
     if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5){ BK.term=null; bkShow(BK.cur+(dx<0?1:-1)); } },{passive:true}); })();
-document.addEventListener("click",e=>{ const b=e.target.closest&&e.target.closest("[data-book]"); if(!b) return; e.preventDefault(); const [kind,v]=b.dataset.book.split("|"); openBook(kind==="t"?{term:v,ch:b.dataset.bookCh}:{ch:v}); });
+document.addEventListener("click",e=>{ const b=e.target.closest&&e.target.closest("[data-book]"); if(!b) return; e.preventDefault(); const [kind,v]=b.dataset.book.split("|"); openBook(kind==="t"?{term:v,ch:b.dataset.bookCh}:kind==="k"?{key:v}:{ch:v}); });
 
 /* ---- 参考書で用語の場所まで移動して、色を付ける ---- */
 function termCands(t){
@@ -5196,10 +5203,39 @@ function jumpTerm(t){
   const blk=hit.el.closest("li,tr,p,.terms > div,.point,.formula"); if(blk) blk.classList.add("hit-blk");
   setTimeout(()=>{ hit.el.scrollIntoView({block:"center"}); },60);
   const k=bkTermKey(t);
-  $("#jump-bar").innerHTML=`<span>「${esc(t)}」の説明</span>${k?`<button class="btn small" data-book="t|${esc(t)}">本のページ</button>`:""}<button class="btn small" id="jb-x" aria-label="閉じる">×</button>`;
+  $("#jump-bar").innerHTML=`<span>「${esc(t)}」の説明</span>${k?`<button class="btn small" data-book="t|${esc(t)}">本のページ</button>`:""}${vidLinkHTML(termVid(t))}<button class="btn small" id="jb-x" aria-label="閉じる">×</button>`;
   $("#jump-bar").hidden=false; $("#jb-x").addEventListener("click",()=>$("#jump-bar").hidden=true);
   return true;
 }
+
+/* ---- 参考書の節 ⇔ 本のページ ⇔ 動画の場面 を対応させる ---- */
+const VID12="oqaBEnhIxk0";
+const secLink=(ch,i)=>(SECLINK[ch]||[])[i]||[null,null];
+const vidLinkHTML=(s,label)=>s==null?"":`<a class="btn small" href="${ytUrl(VID12,s)}" target="_blank" rel="noopener">▶ ${label||"動画"} ${fmtT(s)}</a>`;
+const pageLabel=k=>{ const ch=+k.slice(0,2), j=+k.slice(3), o=BOOK_POFF[ch]; return o?`p.${o+j}`:`第${ch}章 ${j}ページ目`; };
+// 用語 → 動画の場面（その用語を説明している節の場面）
+function termVid(t){ const s=TERMSEC[t]; return s?secLink(s[0],s[1])[1]:null; }
+// 本のページ → アプリの参考書の節（その章で、本の開始ページがそのページ以前の最後の節）
+function pageSec(k){
+  const ch=+k.slice(0,2), id=Object.keys(BOOK_CH).find(x=>BOOK_CH[x]===ch); if(!id) return null;
+  let best=null; (SECLINK[id]||[]).forEach(([bk],i)=>{ if(bk&&bk<=k&&(!best||bk>=best.bk)) best={id,i,bk}; });
+  if(!best){ const i=(SECLINK[id]||[]).findIndex(x=>x[0]); best=i>=0?{id,i,bk:SECLINK[id][i][0]}:{id,i:0}; }
+  return best;
+}
+// 参考書の各節の見出しの下に「本のページ」「動画の場面」を出す
+function addSecLinks(c){
+  const hs=[...document.querySelectorAll("#v-book .ch-body h3")];
+  hs.forEach((h,i)=>{ const [bk,vs]=secLink(c.id,i); if(!bk&&vs==null) return;
+    const d=document.createElement("div"); d.className="sec-links";
+    d.innerHTML=`${bk?`<button class="btn small" data-book="k|${bk}">本 ${pageLabel(bk)}</button>`:""}${vidLinkHTML(vs)}`;
+    h.after(d); });
+}
+function bookFootHTML(p){
+  const s=pageSec(p.k); if(!s) return "";
+  const titles=secTitles(s.id), t=titles[s.i]||chById(s.id).title, vs=secLink(s.id,s.i)[1];
+  return `<div class="bv-foot"><span class="small-muted">このページの内容</span><button class="btn small" data-bv-sec="${s.id}:${s.i}">アプリの参考書「${esc(t)}」</button>${vidLinkHTML(vs)}</div>`;
+}
+document.addEventListener("click",e=>{ const b=e.target.closest&&e.target.closest("[data-bv-sec]"); if(!b) return; const [id,i]=b.dataset.bvSec.split(":"); closeBook(); openSection(id,+i); });
 
 /* ================= 起動 ================= */
 save(false); renderPill(); renderTimerBar();
