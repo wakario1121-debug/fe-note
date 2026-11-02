@@ -245,6 +245,7 @@ main{max-width:1120px;margin:0 auto;padding:20px 16px 64px}
 .hit-links .btn{text-decoration:none}
 .vv-wrap{position:sticky;top:0;z-index:2;max-width:820px;margin:0 auto}
 .vv-big{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font:inherit;font-weight:700;font-size:17px;padding:14px 22px;white-space:nowrap;border-radius:999px;border:0;background:var(--accent,#2F49C4);color:#fff;box-shadow:0 4px 16px rgba(0,0,0,.35)}
+.vv-tools{max-width:820px;margin:4px auto;display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap;font-size:13px;line-height:1.6}
 .bv-wait{max-width:520px;margin:40px auto;text-align:center;color:var(--muted)}
 .bv-open{margin-top:8px}
 mark.hit,.hit-on{background:#FFE24D!important;color:#2a2200!important;border-radius:3px;box-shadow:0 0 0 2px #FFE24D}
@@ -5310,6 +5311,7 @@ function vvRenderPlayer(){
   $("#vv-body").innerHTML=`<div class="vv-wrap"><video id="vv" controls playsinline webkit-playsinline preload="metadata"></video>
     <button class="vv-big" id="vv-big" aria-label="再生">▶ ${fmtT(VV.pending||0)||"0:00"} から再生</button></div>
     <div class="vv-now small-muted" id="vv-now"></div>
+    <div class="vv-tools"><button class="btn small" id="vv-fs">全画面で見る</button><span id="vv-info" class="small-muted"></span></div>
     <div class="vv-sync" id="vv-sync"></div>
     <details class="rd"><summary>場面を選ぶ（${vvChapters().length}か所）</summary><div class="chips">${vvChapters().map(([n,,s])=>`<button class="chip" data-vv-seek="${s}">${esc(n)} <span class="mono small-muted">${fmtT(s)}</span></button>`).join("")}</div></details>
     <p class="small-muted">${VV.saved?"取り込んだ動画はこの端末の中にだけ保存されています。圏外でも見られます。":"この動画は、今アプリを開いている間だけ見られます（端末に保存できませんでした）。"}　<button class="btn small" id="vv-re">別の動画ファイルにする</button></p>`;
@@ -5322,6 +5324,13 @@ function vvRenderPlayer(){
   v.play().then(()=>{ big.hidden=true; }).catch(()=>{});
   big.addEventListener("click",()=>{ v.play().then(()=>{ big.hidden=true; seekTo(VV.pending||0); }).catch(err=>{ $("#vv-now").textContent="再生できませんでした："+vvDiag(err); }); if(v.readyState<1){ try{ v.load(); }catch(e){} } });
   v.addEventListener("play",()=>{ big.hidden=true; });
+  // 映像が真っ暗なときの手がかり：映像の大きさが0なら、映像の部分がこの端末で読めない形式
+  const diag=()=>{ const el=$("#vv-info"); if(!el||!v.isConnected) return; const w=v.videoWidth,h=v.videoHeight, d=isFinite(v.duration)?fmtT(Math.round(v.duration)):"?";
+    if(v.readyState>=1&&!w){ el.innerHTML=`<b>映像が読めない形式です（音だけ再生されます）。</b><br>この動画の映像は、iPhoneが再生できない方式（AV1やVP9など）で保存されているようです。iPhoneの「ショートカット」アプリの「メディアをエンコード」で mp4（H.264）に変換してから、もう一度取り込むと見られます。<br><span class="mono">${esc(vvDiag())}・長さ ${d}</span>`; }
+    else el.innerHTML=`<span class="mono small-muted">${esc(vvDiag())}・映像 ${w}×${h}・長さ ${d}</span>`; };
+  ["loadedmetadata","loadeddata","playing","resize"].forEach(ev=>v.addEventListener(ev,diag));
+  setTimeout(diag,4000);
+  $("#vv-fs").addEventListener("click",()=>{ try{ if(v.webkitEnterFullscreen) v.webkitEnterFullscreen(); else if(v.requestFullscreen) v.requestFullscreen(); }catch(e){} v.play().catch(()=>{}); });
   v.addEventListener("error",()=>{ big.hidden=true; $("#vv-now").innerHTML=`この動画ファイルを再生できませんでした。<br><span class="mono">${esc(vvDiag())}</span><br>iPhoneで再生できるのは mp4・mov 形式です。「別の動画ファイルにする」で選び直すか、形式を教えてください。`; });
   v.addEventListener("timeupdate",()=>{ const t=v.currentTime, L=vvChapters(); let cur=null; L.forEach(x=>{ if(x[2]<=t+1) cur=x; }); const el=$("#vv-now"); if(el&&cur) el.textContent="いまの場面："+cur[0]; vvSync(t); });
   VV.syncKey=undefined; vvSync(VV.pending||0);
