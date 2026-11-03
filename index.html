@@ -448,6 +448,25 @@ pre.code{background:var(--code-bg);color:var(--code-ink);font-family:var(--f-mon
 .qprog i{flex:1;height:5px;border-radius:3px;background:var(--sunk)}
 .qprog i.ok{background:var(--ok)} .qprog i.ng{background:var(--ng)} .qprog i.cur{background:var(--accent)}
 .qtext{font-size:16px;white-space:pre-wrap}
+.qcode{font-family:var(--f-mono,ui-monospace,monospace);font-size:14px;line-height:1.65;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:8px 0;overflow-x:auto;white-space:pre-wrap;overflow-wrap:anywhere;tab-size:2}
+.qlab{font-size:13px;font-weight:700;color:var(--muted);margin:10px 0 4px}
+.qtbl{overflow-x:auto;margin:8px 0}
+.qtbl table{border-collapse:collapse;font-size:13.5px}
+.qtbl th,.qtbl td{border:1px solid var(--line);padding:4px 6px;text-align:left;white-space:nowrap}
+.qtbl .w{white-space:normal;min-width:5em}
+.qtbl th{background:var(--sunk);font-weight:700}
+.qtbl td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.qtbl caption{caption-side:top;text-align:left;font-size:13px;color:var(--muted);padding-bottom:4px}
+.deps{display:flex;flex-direction:column;gap:8px;margin:8px 0}
+.dep{display:grid;grid-template-columns:auto auto 1fr;gap:6px;align-items:start;background:var(--bg);border-radius:10px;padding:8px 10px}
+.dep .dl{display:flex;flex-wrap:wrap;gap:4px}
+.dep .da{color:var(--accent);font-weight:700;padding-top:2px}
+.dep .dr{display:flex;flex-wrap:wrap;gap:4px;min-width:0}
+.dep i{white-space:nowrap;font-style:normal;font-size:14px;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:1px 7px}
+.dep .dl i{font-weight:700;border-color:var(--accent)}
+.qtext .qp{margin:0}
+.qtext.fmt{white-space:normal}
+
 .choices{display:flex;flex-direction:column;gap:8px}
 .choice{display:flex;gap:12px;align-items:flex-start;text-align:left;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:12px 14px;width:100%}
 .choice:hover:not(:disabled){border-color:var(--accent)}
@@ -3215,14 +3234,14 @@ const Q = [
 {id:"a2",c:"algo",q:"昇順に整列された1,000個のデータに対して2分探索を行う。最大比較回数として最も近いものはどれか。",ch:["10回","32回","500回","1,000回"],a:0,e:"2¹⁰ = 1,024 ≧ 1,000 なので最大で約10回。線形探索なら最大1,000回、平均500回です。"},
 {id:"a3",c:"algo",q:"最悪の場合でも計算量が O(n log n) である整列アルゴリズムはどれか。",ch:["バブルソート","クイックソート","ヒープソート","挿入ソート"],a:2,e:"ヒープソートとマージソートは最悪でもO(n log n)。クイックソートは平均O(n log n)ですが最悪O(n²)です。"},
 {id:"a4",c:"algo",q:"キューの説明として適切なものはどれか。",ch:["最後に格納したデータを最初に取り出す","最初に格納したデータを最初に取り出す","優先度の高いデータから取り出す","任意の位置のデータを直接取り出す"],a:1,e:"キューはFIFO（先入れ先出し）。最後に格納したものを最初に取り出すのはスタックです。"},
-{id:"a5",c:"algo",q:"次のプログラムを実行した後の x の値はどれか。\n\n整数型: x ← 0\n整数型: i\nfor (i を 1 から 5 まで 1 ずつ増やす)\n  if (i mod 2 が 1 と等しい)\n    x ← x + i\n  endif\nendfor",ch:["5","6","9","15"],a:2,e:"i を1から5まで変えながら、i が奇数のときだけ x に足します。i=1：奇数なので x=0+1=1。i=2：偶数なので何もしない。i=3：x=1+3=4。i=4：何もしない。i=5：x=4+5=9。答えは 9。",
+{id:"a5",c:"algo",ps:1,q:"次のプログラムを実行した後の x の値はどれか。\n\n整数型: x ← 0\n整数型: i\nfor (i を 1 から 5 まで 1 ずつ増やす)\n  if (i mod 2 が 1 と等しい)\n    x ← x + i\n  endif\nendfor",ch:["5","6","9","15"],a:2,e:"i を1から5まで変えながら、i が奇数のときだけ x に足します。i=1：奇数なので x=0+1=1。i=2：偶数なので何もしない。i=3：x=1+3=4。i=4：何もしない。i=5：x=4+5=9。答えは 9。",
  rd:[["整数型: x ← 0","整数を入れる箱「x」を用意して、0 を入れる"],["整数型: i","整数を入れる箱「i」を用意する"],["for (i を 1 から 5 まで 1 ずつ増やす)","i を 1→2→3→4→5 と変えながら、endfor までを5回くり返す"],["if (i mod 2 が 1 と等しい)","i を2で割った余りが1なら（＝ i が奇数なら）。mod は「割った余り」"],["x ← x + i","今の x に i を足して、x に入れ直す（← は「右の値を左の箱に入れる」）"],["endif ／ endfor","if の終わり ／ くり返しの終わり"]]},
-{id:"a6",c:"algo",q:"関数 f を次のように定義する。f(4) の値はどれか。\n\n○整数型: f(整数型: n)\n  if (n ≦ 1)\n    return 1\n  endif\n  return n × f(n − 1)",ch:["4","10","12","24"],a:3,efig:"recur",e:"f は「n が1以下なら1、それ以外なら n × f(n−1)」を返す関数です。f(4) を求めるには f(3) が必要、f(3) には f(2)、f(2) には f(1) が必要…と下へたどり、f(1)=1 で止まります。そこから上へ戻りながら掛けると 2×1=2 → 3×2=6 → 4×6=24。つまり 4×3×2×1（4の階乗）を計算しています。",
+{id:"a6",c:"algo",ps:1,q:"関数 f を次のように定義する。f(4) の値はどれか。\n\n○整数型: f(整数型: n)\n  if (n ≦ 1)\n    return 1\n  endif\n  return n × f(n − 1)",ch:["4","10","12","24"],a:3,efig:"recur",e:"f は「n が1以下なら1、それ以外なら n × f(n−1)」を返す関数です。f(4) を求めるには f(3) が必要、f(3) には f(2)、f(2) には f(1) が必要…と下へたどり、f(1)=1 で止まります。そこから上へ戻りながら掛けると 2×1=2 → 3×2=6 → 4×6=24。つまり 4×3×2×1（4の階乗）を計算しています。",
  rd:[["○整数型: f(整数型: n)","整数 n を受け取って、整数を返す関数 f の始まり"],["if (n ≦ 1)","n が1以下なら"],["return 1","1 を返して、この関数を終える"],["endif","if の終わり"],["return n × f(n − 1)","そうでなければ、n と「f(n−1) の結果」を掛けて返す。f が自分自身を呼ぶので再帰という"]]},
 {id:"a7",c:"algo",q:"空の2分探索木に 50, 30, 70, 20, 40 の順で値を挿入した。この木を間順（中間順）でたどったときの順序はどれか。",ch:["50, 30, 70, 20, 40","50, 30, 20, 40, 70","20, 30, 40, 50, 70","20, 40, 30, 70, 50"],a:2,e:"2分探索木を間順（左→親→右）でたどると必ず昇順になります。"},
-{id:"a8",c:"algo",q:"次のプログラムを実行した後の配列 a の内容はどれか。配列の要素番号は1から始まる。\n\n整数型の配列: a ← {4, 1, 3, 2}\n整数型: i, tmp\nfor (i を 1 から 3 まで 1 ずつ増やす)\n  if (a[i] > a[i + 1])\n    tmp ← a[i]\n    a[i] ← a[i + 1]\n    a[i + 1] ← tmp\n  endif\nendfor",ch:["{1, 2, 3, 4}","{1, 3, 2, 4}","{1, 4, 3, 2}","{1, 3, 4, 2}"],a:1,efig:"bubble",e:"バブルソートの1パス分。i=1: 4と1を交換 {1,4,3,2}、i=2: 4と3を交換 {1,3,4,2}、i=3: 4と2を交換 {1,3,2,4}。1パスで最大値が末尾に移るだけで、全体はまだ整列していません。",
+{id:"a8",c:"algo",ps:1,q:"次のプログラムを実行した後の配列 a の内容はどれか。配列の要素番号は1から始まる。\n\n整数型の配列: a ← {4, 1, 3, 2}\n整数型: i, tmp\nfor (i を 1 から 3 まで 1 ずつ増やす)\n  if (a[i] > a[i + 1])\n    tmp ← a[i]\n    a[i] ← a[i + 1]\n    a[i + 1] ← tmp\n  endif\nendfor",ch:["{1, 2, 3, 4}","{1, 3, 2, 4}","{1, 4, 3, 2}","{1, 3, 4, 2}"],a:1,efig:"bubble",e:"バブルソートの1パス分。i=1: 4と1を交換 {1,4,3,2}、i=2: 4と3を交換 {1,3,4,2}、i=3: 4と2を交換 {1,3,2,4}。1パスで最大値が末尾に移るだけで、全体はまだ整列していません。",
  rd:[["整数型の配列: a ← {4, 1, 3, 2}","4つの数が並んだ配列。a[1]=4、a[2]=1、a[3]=3、a[4]=2"],["整数型: i, tmp","整数の箱 i と tmp を用意する"],["for (i を 1 から 3 まで 1 ずつ増やす)","i を 1, 2, 3 と変えて3回くり返す"],["if (a[i] > a[i + 1])","隣どうし（i 番目と i+1 番目）を比べて、左のほうが大きければ"],["tmp ← a[i] ／ a[i] ← a[i + 1] ／ a[i + 1] ← tmp","tmp を一時置き場にして、左右の2つを入れ替える"]]},
-{id:"a9",c:"algo",q:"次のプログラムで、関数 g(10) の戻り値はどれか。\n\n○整数型: g(整数型: n)\n  整数型: s ← 0\n  while (n > 0)\n    s ← s + (n mod 2)\n    n ← n ÷ 2 の商\n  endwhile\n  return s",ch:["1","2","3","5"],a:1,efig:"bintrace",e:"n が0より大きい間、「n を2で割った余りを s に足す」「n を2で割った商を新しい n にする」をくり返します。n=10 → 余り0・商5 → 余り1・商2 → 余り0・商1 → 余り1・商0 で終了。足した余りの合計 s は 2。これは 10 を2進数にした 1010 の中の「1」の個数を数えていることになります。",
+{id:"a9",c:"algo",ps:1,q:"次のプログラムで、関数 g(10) の戻り値はどれか。\n\n○整数型: g(整数型: n)\n  整数型: s ← 0\n  while (n > 0)\n    s ← s + (n mod 2)\n    n ← n ÷ 2 の商\n  endwhile\n  return s",ch:["1","2","3","5"],a:1,efig:"bintrace",e:"n が0より大きい間、「n を2で割った余りを s に足す」「n を2で割った商を新しい n にする」をくり返します。n=10 → 余り0・商5 → 余り1・商2 → 余り0・商1 → 余り1・商0 で終了。足した余りの合計 s は 2。これは 10 を2進数にした 1010 の中の「1」の個数を数えていることになります。",
  rd:[["○整数型: g(整数型: n)","整数 n を受け取って、整数を返す関数 g の始まり"],["整数型: s ← 0","数を数える箱 s を用意して 0 にする"],["while (n > 0)","n が 0 より大きい間、endwhile までをくり返す"],["s ← s + (n mod 2)","n を2で割った余り（0 か 1）を s に足す"],["n ← n ÷ 2 の商","n を2で割った商（小数は切り捨て）を新しい n にする"],["return s","くり返しが終わったら s を返す"]]},
 {id:"h1",c:"hw",q:"キャッシュメモリのアクセス時間が10ナノ秒、主記憶のアクセス時間が60ナノ秒、ヒット率が90%のとき、実効アクセス時間は何ナノ秒か。",ch:["15","20","51","55"],a:0,e:"0.9 × 10 + 0.1 × 60 = 9 + 6 = 15ナノ秒。"},
 {id:"h2",c:"hw",q:"クロック周波数が2GHzで、1命令の実行に平均4クロックを要するCPUの性能は何MIPSか。",ch:["50","250","500","8,000"],a:2,e:"2GHz = 2,000 × 10⁶ クロック/秒。÷4 で 500 × 10⁶ 命令/秒 = 500 MIPS。"},
@@ -3308,6 +3327,36 @@ const Q = [
 {id:"H3",c:"hi",q:"高齢者や障害者を含め、できるだけ多くの人が情報やサービスを利用できる度合いを表すものはどれか。",ch:["ユーザビリティ","アクセシビリティ","スケーラビリティ","トレーサビリティ"],a:1,e:"アクセシビリティ。ユーザビリティは特定の利用者にとっての使いやすさ（有効さ・効率・満足度）です。"},
 {id:"H4",c:"hi",q:"コンピュータグラフィックスで、斜めの線や文字の輪郭に生じるギザギザを、中間色を使って滑らかに見せる技術はどれか。",ch:["アンチエイリアシング","レンダリング","テクスチャマッピング","モーフィング"],a:0,e:"アンチエイリアシング。レンダリングは3次元データから画像を作ること、テクスチャマッピングは表面に模様を貼ること、モーフィングはある形から別の形へ滑らかに変化させる手法です。"},
 {id:"H5",c:"hi",q:"商品コードにチェックディジットを付加する目的として、適切なものはどれか。",ch:["コードの入力誤りを検出する","同じコードが二重に登録されるのを防ぐ","コードから商品の内容が分かるようにする","コードを暗号化して盗み見を防ぐ"],a:0,e:"チェックディジットは、他の桁から計算した検査用の数字。入力された値で計算し直して一致しなければ、入力の誤りと分かります。"},
+{id:"p1",c:"algo",ps:1,q:"次のプログラムを実行した後の s の値はどれか。",code:"整数型: s ← 0\n整数型: i\nfor (i を 1 から 10 まで 1 ずつ増やす)\n  if (i mod 2 が 0 と等しい)\n    s ← s + i\n  endif\nendfor",ch:["25", "30", "45", "55"],a:1,e:"i が偶数（2で割った余りが0）のときだけ足します。2＋4＋6＋8＋10＝30。"},
+{id:"p2",c:"algo",ps:1,q:"次のプログラムを実行したとき、★の行が実行される回数はどれか。",code:"整数型の配列: a ← {3, 8, 2, 9, 5}\n整数型: m ← a[1]\n整数型: i\nfor (i を 2 から aの要素数 まで 1 ずつ増やす)\n  if (a[i] > m)\n    m ← a[i]    ★\n  endif\nendfor",ch:["1回", "2回", "3回", "4回"],a:1,e:"m は最初 3。i=2：8＞3 なので m=8（1回目）。i=3：2＞8 ではない。i=4：9＞8 なので m=9（2回目）。i=5：5＞9 ではない。よって2回。"},
+{id:"p3",c:"algo",ps:1,q:"関数 find を呼び出したときの戻り値はどれか。",code:"○整数型: find()\n  整数型の配列: a ← {4, 7, 1, 7}\n  整数型: i ← 1\n  while (i ≦ aの要素数 and a[i] ≠ 7)\n    i ← i + 1\n  endwhile\n  return i",ch:["1", "2", "3", "4"],a:1,e:"a[1]=4 は7ではないので i=2 へ。a[2]=7 で条件「a[i] ≠ 7」が偽になり、くり返しを抜けます。最初に見つかった 2 を返します（a[4] の7までは進みません）。"},
+{id:"p4",c:"algo",ps:1,q:"次のプログラムで、★の行（比べる回数）は何回実行されるか。",code:"整数型の配列: a ← {2, 5, 8, 12, 16, 23, 38, 56}\n整数型: lo ← 1, hi ← 8, mid\nwhile (lo ≦ hi)\n  mid ← (lo + hi) ÷ 2 の商\n  if (a[mid] が 23 と等しい)    ★\n    return mid\n  elseif (a[mid] < 23)\n    lo ← mid + 1\n  else\n    hi ← mid − 1\n  endif\nendwhile",ch:["1回", "2回", "3回", "6回"],a:1,e:"2分探索です。1回目：mid=(1+8)÷2=4、a[4]=12＜23 なので lo=5。2回目：mid=(5+8)÷2=6、a[6]=23 で見つかります。よって2回。"},
+{id:"p5",c:"algo",ps:1,q:"関数 gcd(48, 18) の戻り値はどれか。",code:"○整数型: gcd(整数型: a, 整数型: b)\n  整数型: r\n  while (b ≠ 0)\n    r ← a mod b\n    a ← b\n    b ← r\n  endwhile\n  return a",ch:["3", "6", "9", "18"],a:1,e:"ユークリッドの互除法（最大公約数）です。(48,18)→余り12→(18,12)→余り6→(12,6)→余り0→(6,0)で b=0 になり、a=6 を返します。"},
+{id:"p6",c:"algo",ps:1,q:"f(5) を呼び出したとき、関数 f は全部で何回呼び出されるか（最初の f(5) も数える）。",code:"○整数型: f(整数型: n)\n  if (n ≦ 2)\n    return 1\n  endif\n  return f(n − 1) + f(n − 2)",ch:["5回", "7回", "9回", "15回"],a:2,e:"f(5)→f(4),f(3)。f(4)→f(3),f(2)。f(3)→f(2),f(1) が2か所。数えると f(5)1回、f(4)1回、f(3)2回、f(2)3回、f(1)2回で、合計9回です。木の形に書くと数えやすくなります。"},
+{id:"p8",c:"algo",ps:1,q:"次のプログラムで、★の行は何回実行されるか。",code:"整数型: i, j, c ← 0\nfor (i を 1 から 4 まで 1 ずつ増やす)\n  for (j を i から 4 まで 1 ずつ増やす)\n    c ← c + 1    ★\n  endfor\nendfor",ch:["4回", "10回", "12回", "16回"],a:1,e:"内側の for は j が i から4まで。i=1 で4回、i=2 で3回、i=3 で2回、i=4 で1回。4＋3＋2＋1＝10回。"},
+{id:"p9",c:"algo",ps:1,q:"n が 1234 のとき、次のプログラムを実行した後の s の値はどれか。",code:"整数型: s ← 0\nwhile (n > 0)\n  s ← s + (n mod 10)\n  n ← n ÷ 10 の商\nendwhile",ch:["4", "10", "123", "1234"],a:1,e:"n mod 10 は一の位。4 を足して n=123、3 を足して n=12、2 を足して n=1、1 を足して n=0 で終わり。4＋3＋2＋1＝10（各桁の和）。"},
+{id:"p10",c:"algo",ps:1,q:"n が 1234 のとき、次のプログラムを実行した後の r の値はどれか。",code:"整数型: r ← 0\nwhile (n > 0)\n  r ← r × 10 + (n mod 10)\n  n ← n ÷ 10 の商\nendwhile",ch:["1234", "4321", "10", "4000"],a:1,e:"一の位を取り出して r の後ろに付けていきます。r=4 → 43 → 432 → 4321。数字を逆順にするプログラムです。"},
+{id:"p11",c:"algo",ps:1,q:"次のプログラムを実行した後の配列 a の内容はどれか。",code:"整数型の配列: a ← {5, 3, 8, 1, 4}\n整数型: j, k ← 1, tmp\nfor (j を 2 から 5 まで 1 ずつ増やす)\n  if (a[j] < a[k])\n    k ← j\n  endif\nendfor\ntmp ← a[1]\na[1] ← a[k]\na[k] ← tmp",ch:["{1, 3, 8, 5, 4}", "{1, 3, 4, 5, 8}", "{3, 5, 8, 1, 4}", "{1, 5, 3, 8, 4}"],a:0,e:"選択ソートの1回分です。一番小さい値の場所 k を探すと a[4]=1 なので k=4。a[1] と a[4] を入れ替えて {1, 3, 8, 5, 4}。ほかはまだ並べ替えていません。"},
+{id:"p12",c:"algo",ps:1,q:"次のプログラムを実行した後の配列 a の内容はどれか（挿入ソートの途中まで）。",code:"整数型の配列: a ← {4, 2, 5, 1, 3}\n整数型: i, j, x\nfor (i を 2 から 4 まで 1 ずつ増やす)\n  x ← a[i]\n  j ← i − 1\n  while (j ≧ 1 and a[j] > x)\n    a[j + 1] ← a[j]\n    j ← j − 1\n  endwhile\n  a[j + 1] ← x\nendfor",ch:["{1, 2, 3, 4, 5}", "{1, 2, 4, 5, 3}", "{2, 4, 5, 1, 3}", "{2, 4, 1, 5, 3}"],a:1,e:"前から4つ目までを整列します。i=2：2を前に入れて {2,4,5,1,3}。i=3：5はそのまま。i=4：1を先頭まで入れて {1,2,4,5,3}。5つ目の3はまだ動かしていません。"},
+{id:"p13",c:"algo",ps:1,q:"次のプログラムを実行した後の c の値はどれか。",code:"整数型: n, i, c ← 0\n論理型: ok\nfor (n を 2 から 20 まで 1 ずつ増やす)\n  ok ← true\n  for (i を 2 から n − 1 まで 1 ずつ増やす)\n    if (n mod i が 0 と等しい)\n      ok ← false\n    endif\n  endfor\n  if (ok)\n    c ← c + 1\n  endif\nendfor",ch:["7", "8", "9", "10"],a:1,e:"n が 2〜n−1 のどれでも割り切れなければ素数として数えます。2〜20の素数は 2, 3, 5, 7, 11, 13, 17, 19 の8個。"},
+{id:"p14",c:"algo",ps:1,q:"次のプログラムを実行した後の s の値はどれか。",code:"整数型の二次元配列: m（3行3列）\n整数型: i, j, s ← 0\nfor (i を 1 から 3 まで 1 ずつ増やす)\n  for (j を 1 から 3 まで 1 ずつ増やす)\n    m[i, j] ← i × j\n  endfor\nendfor\nfor (i を 1 から 3 まで 1 ずつ増やす)\n  s ← s + m[i, i]\nendfor",ch:["6", "14", "18", "36"],a:1,e:"後半は m[1,1]、m[2,2]、m[3,3]（右下がりの対角線）だけを足します。1×1＋2×2＋3×3＝1＋4＋9＝14。"},
+{id:"p15",c:"algo",ps:1,q:"次のプログラムで出力される順番はどれか。",code:"文字型の配列: val ← {\"A\", \"B\", \"C\", \"D\"}\n整数型の配列: next ← {4, 0, 1, 2}\n整数型: p ← 3\nwhile (p ≠ 0)\n  val[p] を出力する\n  p ← next[p]\nendwhile",ch:["A, B, C, D", "C, A, D, B", "C, B, A, D", "D, B, A, C"],a:1,e:"連結リストをたどります。p=3 で C を出力、next[3]=1 へ。A を出力、next[1]=4 へ。D を出力、next[4]=2 へ。B を出力、next[2]=0 で終わり。C, A, D, B。"},
+{id:"p16",c:"algo",ps:1,q:"n が 100 のとき、★の行は何回実行されるか。",code:"整数型: c ← 0\nwhile (n > 1)\n  n ← n ÷ 2 の商    ★\n  c ← c + 1\nendwhile",ch:["5回", "6回", "7回", "50回"],a:1,e:"n は 100→50→25→12→6→3→1 と変わり、1 になったら止まります。矢印の数を数えて6回。半分にしていく処理の回数は、およそ log₂n です。"},
+{id:"p17",c:"algo",ps:1,q:"次のプログラムを実行した後の x の値はどれか。",code:"整数型: x ← 1\n整数型: i\nfor (i を 1 から 5 まで 1 ずつ増やす)\n  x ← x × 2 + 1\nendfor",ch:["11", "31", "32", "63"],a:3,e:"x は 1→3→7→15→31→63。5回くり返すので63。2進数で見ると、右に1を1つずつ足していく（1, 11, 111, …）計算です。"},
+{id:"p18",c:"algo",ps:1,q:"次のプログラムを実行した後の配列 a の内容はどれか。",code:"整数型の配列: a ← {1, 2, 3, 4, 5}\n整数型: i, tmp, n ← 5\nfor (i を 1 から n まで 1 ずつ増やす)\n  tmp ← a[i]\n  a[i] ← a[n − i + 1]\n  a[n − i + 1] ← tmp\nendfor",ch:["{5, 4, 3, 2, 1}", "{1, 2, 3, 4, 5}", "{5, 2, 3, 4, 1}", "{2, 3, 4, 5, 1}"],a:1,e:"ひっかけ問題です。i=1,2 で前後を入れ替えて {5,4,3,2,1} になりますが、i=4,5 でもう一度同じ組を入れ替えるので元に戻ります。逆順にしたいなら、くり返しは n÷2 の商（＝2）まで。"},
+{id:"p19",c:"algo",ps:1,q:"power(2, 10) を呼び出したとき、関数 power は全部で何回呼び出されるか（最初の呼び出しも数える）。",code:"○整数型: power(整数型: x, 整数型: n)\n  整数型: y\n  if (n が 0 と等しい)\n    return 1\n  elseif (n mod 2 が 0 と等しい)\n    y ← power(x, n ÷ 2 の商)\n    return y × y\n  else\n    return x × power(x, n − 1)\n  endif",ch:["4回", "6回", "10回", "11回"],a:1,e:"n は 10→5→4→2→1→0 と変わります（偶数なら半分、奇数なら1引く）。呼び出しは6回。10回掛けるより少ない回数で 2¹⁰＝1024 を求める工夫です。"},
+{id:"p20",c:"algo",ps:1,q:"次のプログラムで、while を抜けたときの k の値はどれか。",code:"整数型の配列: a ← {1, 4, 7, 9}, b ← {3, 6}\n整数型の配列: c ← {}\n整数型: i ← 1, j ← 1, k ← 0\nwhile (i ≦ aの要素数 and j ≦ bの要素数)\n  k ← k + 1\n  if (a[i] ≦ b[j])\n    c の末尾に a[i] を追加する\n    i ← i + 1\n  else\n    c の末尾に b[j] を追加する\n    j ← j + 1\n  endif\nendwhile",ch:["4", "5", "6", "2"],a:0,e:"小さいほうを順に c に入れます（マージ）。1, 3, 4, 6 と入れた時点で b を使い切り（j=3）、条件が偽になって抜けます。k=4。残りの 7, 9 は、この後に別の処理で付け足します。"},
+{id:"p21",c:"algo",ps:1,q:"次のプログラムを実行した後の配列 cnt の内容はどれか。",code:"整数型の配列: a ← {2, 3, 2, 1, 3, 2}\n整数型の配列: cnt ← {0, 0, 0}\n整数型: i\nfor (i を 1 から aの要素数 まで 1 ずつ増やす)\n  cnt[a[i]] ← cnt[a[i]] + 1\nendfor",ch:["{1, 3, 2}", "{2, 3, 2}", "{1, 2, 3}", "{3, 2, 1}"],a:0,e:"a[i] の値を「要素番号」として使い、その数が何回出たかを数えます。1 は1回、2 は3回、3 は2回なので {1, 3, 2}。"},
+{id:"p22",c:"algo",ps:1,q:"n が 6 のとき、次のプログラムを実行した後の c の値はどれか。",code:"整数型: c ← 0\nwhile (n ≠ 1)\n  if (n mod 2 が 0 と等しい)\n    n ← n ÷ 2 の商\n  else\n    n ← 3 × n + 1\n  endif\n  c ← c + 1\nendwhile",ch:["6", "8", "9", "16"],a:1,e:"n は 6→3→10→5→16→8→4→2→1 と変わります。矢印の数を数えて8。手でトレース表を書いて追う練習にぴったりの問題です。"},
+{id:"p7",c:"algo",ps:1,q:"空のキューに対して次の操作を順に行った後、キューの先頭にある値はどれか。",code:"enqueue(5)\nenqueue(3)\ndequeue()\nenqueue(7)\ndequeue()\nenqueue(2)",ch:["5", "3", "7", "2"],a:2,e:"キューは先に入れたものから出ます（FIFO）。[5]→[5,3]→5を出して[3]→[3,7]→3を出して[7]→[7,2]。先頭は7。"},
+{id:"b1",c:"algo",ps:1,q:"関数 maxIndex は、配列 a の中で最大の値の要素番号を返す。最大の値が複数あるときは、いちばん前の要素番号を返す。［ア］に入れる正しい答えはどれか。",code:"○整数型: maxIndex(整数型の配列: a)\n  整数型: i, k ← 1\n  for (i を 2 から aの要素数 まで 1 ずつ増やす)\n    if (a[i]  ［ア］  a[k])\n      k ← i\n    endif\n  endfor\n  return k",ch:[">", "≧", "<", "＝"],a:0,e:"大きいものが見つかったときだけ k を変えます。「≧」だと同じ値のときも k が後ろに動き、いちばん後ろの要素番号になってしまいます。例：{3, 9, 2, 9, 4} なら「>」で2、「≧」で4。"},
+{id:"b2",c:"algo",ps:1,q:"関数 average は、配列 a の値の平均を返す。［ア］に入れる正しい答えはどれか。",code:"○実数型: average(整数型の配列: a)\n  整数型: i, s ← 0\n  for (i を 1 から aの要素数 まで 1 ずつ増やす)\n    s ← s + a[i]\n  endfor\n  return s ÷ ［ア］",ch:["aの要素数", "aの要素数 − 1", "i", "s"],a:0,e:"平均は「合計 ÷ 個数」。個数は aの要素数です。i は for を抜けた後の値なので使いません（試験ではループの後の変数の値を使わない書き方をします）。"},
+{id:"b3",c:"algo",ps:1,q:"関数 search は、小さい順に並んだ配列 a から t を2分探索で探し、見つかれば要素番号を、なければ −1 を返す。［ア］に入れる正しい答えはどれか。",code:"○整数型: search(整数型の配列: a, 整数型: t)\n  整数型: lo ← 1, hi ← aの要素数, mid\n  while (lo ≦ hi)\n    mid ← (lo + hi) ÷ 2 の商\n    if (a[mid] が t と等しい)\n      return mid\n    elseif (a[mid] < t)\n      ［ア］\n    else\n      hi ← mid − 1\n    endif\n  endwhile\n  return −1",ch:["lo ← mid + 1", "lo ← mid", "hi ← mid − 1", "hi ← mid + 1"],a:0,e:"a[mid] が t より小さいなら、t は mid より後ろにあります。探す範囲の左端を mid の1つ後ろにします。「lo ← mid」だと範囲が縮まらず、終わらないことがあります。"},
+{id:"b4",c:"algo",ps:1,q:"次のバブルソートのプログラムで、［ア］に入れる正しい答えはどれか。ここで n は配列 a の要素数とする。",code:"整数型: i, j, tmp\nfor (i を 1 から n − 1 まで 1 ずつ増やす)\n  for (j を 1 から ［ア］ まで 1 ずつ増やす)\n    if (a[j] > a[j + 1])\n      tmp ← a[j]\n      a[j] ← a[j + 1]\n      a[j + 1] ← tmp\n    endif\n  endfor\nendfor",ch:["n − i", "n", "i", "n − 1 − i"],a:0,e:"1回目（i=1）は最後まで比べる必要があるので j は n−1 まで。i 回目が終わると後ろの i 個が確定するので、比べる範囲は1つずつ減って n − i まで。「n」だと a[n+1] という存在しない要素を読んでしまいます。"},
+{id:"b5",c:"algo",ps:1,q:"関数 fact は n の階乗（n × (n−1) × … × 1）を返す。［ア］に入れる正しい答えはどれか。",code:"○整数型: fact(整数型: n)\n  if (n ≦ 1)\n    return ［ア］\n  endif\n  return n × fact(n − 1)",ch:["1", "0", "n", "n − 1"],a:0,e:"再帰の終わり（n が1以下）で返す値です。1! ＝ 1、0! ＝ 1 と決まっています。0 を返すと、掛け算の結果が全部 0 になってしまいます。"},
+{id:"b6",c:"algo",ps:1,q:"配列 st と変数 top でスタックを作る。関数 pop は、いちばん上の値を取り出して返す。［ア］に入れる正しい答えはどれか。ここで top は、いちばん上の値の要素番号とする。",code:"○整数型: pop()\n  整数型: x\n  x ← st[top]\n  ［ア］\n  return x",ch:["top ← top − 1", "top ← top + 1", "st[top] ← x", "x ← st[top − 1]"],a:0,e:"スタックは最後に積んだものから取り出します（LIFO）。取り出したら、いちばん上の位置を1つ下げます。push はその逆で top ← top + 1 してから値を入れます。"},
+{id:"b7",c:"algo",ps:1,q:"関数 gcd は、ユークリッドの互除法で a と b の最大公約数を返す。［ア］に入れる正しい答えはどれか。",code:"○整数型: gcd(整数型: a, 整数型: b)\n  整数型: r\n  while (b ≠ 0)\n    r ← a mod b\n    a ← b\n    ［ア］\n  endwhile\n  return a",ch:["b ← r", "a ← r", "b ← a", "r ← b"],a:0,e:"互除法は「(a, b) を (b, a を b で割った余り) に置き換える」をくり返します。a ← b の次に、b に余り r を入れます。"},
+{id:"b8",c:"algo",ps:1,q:"要素番号が 1〜N の配列 q を、最後の次は最初に戻る「輪」として使ってキューを作る。値を入れる位置 tail を1つ進める式として、［ア］に入れる正しい答えはどれか。",code:"tail ← ［ア］\nq[tail] ← x",ch:["(tail mod N) + 1", "tail + 1", "(tail + 1) mod N", "tail mod N"],a:0,e:"N=5 なら tail は 1→2→3→4→5→1 と回ってほしい。(tail mod 5)+1 は 2, 3, 4, 5, 1 になります。「(tail+1) mod N」は 5 の次が 1、4 の次が 0 になり、要素番号0は存在しません（0始まりの言語ならこちらが正解）。"},
 {id:"a10",c:"algo",q:"根が A で、A の左の子が B、右の子が C、B の左の子が D、右の子が E である2分木を、先行順（親→左→右）でたどったときの順序はどれか。",ch:["A, B, D, E, C","D, B, E, A, C","D, E, B, C, A","A, B, C, D, E"],a:0,e:"先行順は親を先に書いてから左、右へ。A → B（Aの左）→ D（Bの左）→ E（Bの右）→ C（Aの右）。イは間順、ウは後行順、エは上の段から順に並べたものです。"},
 {id:"a11",c:"algo",q:"計算量が O(n²) のアルゴリズムで 1,000 件のデータを処理すると 1 秒かかった。10,000 件のデータを処理するとおよそ何秒かかるか。",ch:["10秒","100秒","1,000秒","10,000秒"],a:1,e:"O(n²) はデータ量の2乗に比例します。データが10倍になると時間は 10² ＝ 100倍なので約100秒。"},
 {id:"a12",c:"algo",q:"JSON 形式で記述されたデータはどれか。",ch:["{\"name\": \"Sato\", \"age\": 20}","<name>Sato</name><age>20</age>","name,age\nSato,20","name = Sato; age = 20;"],a:0,e:"JSONは { } の中に \"名前\": 値 の組をカンマで並べます。イはXML、ウはCSVです。"},
@@ -3901,7 +3950,7 @@ function renderHome(){
     dp.secs.length
       ?["quiz",`今日読んだ「${chById(dch).title}」の問題を解き、解説で理由まで確認する`,M[1],`<button class="btn small" data-open-q="${Q.some(q=>q.c===dch)?dch:"random"}">解く</button>`]
       :["quiz",dp.weekChs.length?"この週の章の問題をまとめて解き直す":"過去問を解いて実力をチェックする",M[1],dp.weekChs.length?`<button class="btn small" data-open-q="${dp.weekChs.find(c=>Q.some(q=>q.c===c))||"random"}">解く</button>`:`<button class="btn small" data-goto="past">過去問</button>`],
-    ["b","科目B対策：擬似言語の問題を紙にトレース表を書いて解く",M[2],`<button class="btn small" data-open-q="algo">擬似言語</button>`],
+    ["b","科目B対策：擬似言語の問題を紙にトレース表を書いて解く",M[2],`<button class="btn small" data-open-q="pseudo">擬似言語</button>`],
     dp.tasks.length
       ?["rev",`今日の計画タスク：${dp.tasks.map(x=>x.t).join(" ／ ")}`,M[3],`<button class="btn small" data-goto="plan">計画</button>`]
       :["rev","間違えた問題を解き直す",M[3],`<button class="btn small" data-open-q="wrong">復習</button>`]];
@@ -4284,6 +4333,50 @@ function vidHTML(ch){ const L=VIDS[ch]; if(!L) return "";
   return `<details class="rd vids"><summary>動画で見る（すーさんの解説・${L.length}本）</summary>
     <p class="small-muted" style="margin:6px 0">難しいところは動画で聞くと分かりやすくなります。押すとYouTubeのその場面から始まります。</p>
     <div class="chips">${L.map(([n,v,s])=>`<a class="chip" href="${ytUrl(v,s)}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">${esc(n)}${s?` <span class="mono small-muted">${fmtT(s)}</span>`:" <span class=\"small-muted\">（単独の動画）</span>"}</a>`).join("")}</div></details>`; }
+
+/* ---- 問題文の整形：表・関数従属・プログラムを読みやすく ---- */
+function fmtQ(t){
+  const L=String(t).split("\n"), out=[]; let i=0;
+  const isDep=l=>/→/.test(l)&&/[｛{]/.test(l)&&!/[。“”"]/.test(l);
+  const isCode=l=>/←/.test(l)||/^\s*(○|整数型|実数型|文字型|文字列型|論理型|for \(|while \(|if \(|elseif|else$|endif|endfor|endwhile|return\b|do$)/.test(l)||/^\s*(SELECT|FROM|WHERE|GROUP BY|ORDER BY|HAVING|CREATE|INSERT|UPDATE|DELETE|VALUES|AND|OR)\b/.test(l)||(/^\s{2,}\S/.test(l)&&/[()（）]/.test(l)&&!/\S\s{3,}\S/.test(l.trim()));
+  const isTab=l=>/\S\s{2,}\S/.test(l.trim())||/^\s{4,}\S.*\s{2,}\S/.test(l);
+  const plain=l=>!/[。，、．]/.test(l)&&l.trim().replace(/\s+/g," ").length<=48;
+  const chips=s=>s.replace(/[｛｝{}]/g,"").split(/[，,]/).map(x=>x.trim()).filter(Boolean).map(x=>`<i>${esc(x)}</i>`).join("");
+  while(i<L.length){
+    const l=L[i];
+    if(!l.trim()){ i++; continue; }
+    if(/^\s*〔.+〕\s*$/.test(l)){ out.push(`<div class="qlab">${esc(l.trim())}</div>`); i++; continue; }
+    if(isDep(l)){ const rows=[]; while(i<L.length&&isDep(L[i])){ const [a,...b]=L[i].split("→"); rows.push(`<div class="dep"><span class="dl">${chips(a)}</span><span class="da">→</span><span class="dr">${chips(b.join("→"))}</span></div>`); i++; }
+      out.push(`<div class="deps">${rows.join("")}</div>`); continue; }
+    if(isCode(l)){ const c=[]; while(i<L.length&&L[i].trim()&&!/。/.test(L[i])&&!/^\s*〔/.test(L[i])){ c.push(L[i]); i++; } out.push(`<pre class="qcode">${esc(c.join("\n"))}</pre>`); continue; }
+    // 表（1つの空白で区切られ、空行をはさんで並んでいる形）：列の数が同じ行が3行以上
+    { let j=i; const rows=[]; while(j<L.length&&(!L[j].trim()||plain(L[j]))){ if(L[j].trim()) rows.push(L[j].trim().split(/\s+/)); j++; }
+      let st=0; while(st<rows.length&&rows[st].length<3) st++;
+      const n=rows[st]?rows[st].length:0; let en=st; while(en<rows.length&&rows[en].length===n) en++;
+      if(n>=3&&en-st>=3&&!rows.slice(st,en).every(r=>r.every(v=>/^[\d,]+$/.test(v)))&&!L.slice(i,j).some(isTab)){
+        const cap=rows.slice(0,st).map(r=>r.join(" ")).join("　");
+        out.push(`<div class="qtbl"><table>${cap?`<caption>${esc(cap)}</caption>`:""}${rows.slice(st,en).map((r,k)=>`<tr>${r.map(v=>k===0?`<th>${esc(v)}</th>`:`<td class="${/^[\d,.]+$/.test(v)?"num":v.length>8?"w":""}">${esc(v)}</td>`).join("")}</tr>`).join("")}</table></div>`);
+        // 表のあとに残った行はふつうに出す
+        let used=0,k2=i; while(k2<j&&used<en){ if(L[k2].trim()) used++; k2++; } i=k2; continue; } }
+    // 表：空白でそろえた行が2行以上つづくところ（前の短い行は表の見出しとして含める）
+    let j=i; while(j<L.length&&L[j].trim()&&plain(L[j])) j++;
+    const blk=L.slice(i,j), tabN=blk.filter(isTab).length;
+    if(blk.length>=2&&tabN>=2){
+      let cells=blk.map(x=>{ const lead=/^\s{3,}/.test(x); const c=x.trim().split(/\s{2,}/); return {x,lead,c}; });
+      const cnt={}; cells.filter(o=>isTab(o.x)).forEach(o=>cnt[o.c.length]=(cnt[o.c.length]||0)+1);
+      const k=+Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0][0];
+      const rows=[], cap=[];
+      cells.forEach((o,n)=>{ let c=o.c;
+        if(c.length!==k){ const s=o.x.trim().split(/\s+/); if(s.length===k) c=s; else if(o.lead&&c.length===k-1) c=["",...c]; else { if(!rows.length) cap.push(o.x.trim()); else rows.push({cap:o.x.trim()}); return; } }
+        rows.push({c}); });
+      const head=rows.length&&rows[0].c&&!rows[0].c.some(v=>/^[\d,.\-−]+$/.test(v))&&rows.slice(1).some(r=>r.c&&r.c.some(v=>/\d/.test(v)));
+      out.push(`<div class="qtbl"><table>${cap.length?`<caption>${esc(cap.join("　"))}</caption>`:""}${rows.map((r,n)=>r.cap?`<tr><td class="w" colspan="${k}">${esc(r.cap)}</td></tr>`:`<tr>${r.c.map(v=>(n===0&&head)?`<th>${esc(v)}</th>`:`<td class="${/^[\d,.\-−]+(\s?[円人日席%])?$/.test(v)?"num":v.length>8?"w":""}">${esc(v)}</td>`).join("")}</tr>`).join("")}</table></div>`);
+      i=j; continue; }
+    out.push(`<p class="qp">${esc(l)}</p>`); i++;
+  }
+  return out.join("");
+}
+const qHTML=(t,extra="")=>`<div class="qtext fmt"${extra}>${fmtQ(t)}</div>`;
 /* ================= 問題演習 ================= */
 let quiz=null;
 function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
@@ -4305,23 +4398,25 @@ function startQuiz(cat){
     pool=[...fresh,...shuffle(Q.filter(q=>S.qs[q.id]&&!recent(q))),...shuffle(Q.filter(recent))].slice(0,GOAL.q);
   }
   else if(cat==="wrong") pool=Q.filter(q=>S.qs[q.id]&&!S.qs[q.id].last);
+  else if(cat==="pseudo"){ const P=Q.filter(q=>q.ps), recent=q=>seenRecently(S.qs[q.id]);
+    pool=[...shuffle(P.filter(q=>!S.qs[q.id])),...shuffle(P.filter(q=>S.qs[q.id]&&!S.qs[q.id].last&&!recent(q))),...shuffle(P.filter(q=>S.qs[q.id]&&S.qs[q.id].last&&!recent(q))),...shuffle(P.filter(q=>S.qs[q.id]&&recent(q)))].slice(0,GOAL.q); }
   else if(cat==="random") pool=shuffle(Q).slice(0,10);
   else if(cat==="all") pool=shuffle(Q);
-  else { pool=Q.filter(q=>q.c===cat); if(chById(cat)){ S.ch=cat; saveLocal(); } }
+  else { const C=Q.filter(q=>q.c===cat); pool=[...shuffle(C.filter(q=>!S.qs[q.id])),...shuffle(C.filter(q=>S.qs[q.id]&&!S.qs[q.id].last)),...shuffle(C.filter(q=>S.qs[q.id]&&S.qs[q.id].last))]; if(chById(cat)){ S.ch=cat; saveLocal(); } }
   quiz={cat,ids:pool.map(q=>q.id),i:0,picked:null,score:0,res:[]};
 }
-const catLabel=cat=>({today:"今日の5問",next:"明日の5問（先取り）",all:"全問（シャッフル）",random:"ランダム10問",wrong:"間違えた問題"}[cat]||chById(cat).title);
+const catLabel=cat=>({pseudo:"科目B 擬似言語（5問）",today:"今日の5問",next:"明日の5問（先取り）",all:"全問（シャッフル）",random:"ランダム10問",wrong:"間違えた問題"}[cat]||chById(cat).title);
 function renderQuiz(){
   if(!quiz) startQuiz("today");
   const wrongN=Q.filter(q=>S.qs[q.id]&&!S.qs[q.id].last).length;
-  const chips=[["today","今日の5問"],["random","ランダム10問"],["all","全問"],["wrong",`間違えた問題（${wrongN}）`]].concat(CHAPTERS.filter(c=>Q.some(q=>q.c===c.id)).map(c=>[c.id,c.title]));
+  const chips=[["today","今日の5問"],["pseudo","科目B 擬似言語"],["random","ランダム10問"],["all","全問"],["wrong",`間違えた問題（${wrongN}）`]].concat(CHAPTERS.filter(c=>Q.some(q=>q.c===c.id)).map(c=>[c.id,c.title]));
   const prog=quiz.ids.length<=20?`<div class="qprog">${quiz.ids.map((_,k)=>`<i class="${k<quiz.res.length?(quiz.res[k]?"ok":"ng"):k===quiz.i?"cur":""}"></i>`).join("")}</div>`:"";
   let card;
   if(!quiz.ids.length){
     card=`<div class="qcard"><div class="done-box"><h3>出題できる問題がありません</h3><p class="small-muted">${quiz.cat==="wrong"?"間違えた問題はまだありません。":"別の出題範囲を選んでください。"}</p></div></div>`;
   } else if(quiz.i>=quiz.ids.length){
     if(!quiz.logged){ quiz.logged=true;
-      if(quiz.cat==="wrong") markNight("rev"); else if(quiz.cat==="algo") markNight("b"); else if(quiz.cat!=="today"&&quiz.cat!=="next") markNight("quiz"); }
+      if(quiz.cat==="wrong") markNight("rev"); else if(quiz.cat==="algo"||quiz.cat==="pseudo") markNight("b"); else if(quiz.cat!=="today"&&quiz.cat!=="next") markNight("quiz"); }
     const p=pct(quiz.score,quiz.ids.length), d=getDay(today());
     card=`<div class="qcard">${prog}<div class="done-box">
       <div class="eyebrow">${esc(catLabel(quiz.cat))} ／ 結果</div>
@@ -4339,7 +4434,7 @@ function renderQuiz(){
     const q=Q.find(x=>x.id===quiz.ids[quiz.i]), c=chById(q.c), answered=quiz.picked!==null, ok=quiz.picked===q.a;
     card=`<div class="qcard">${prog}
       <div class="qmeta"><span><i class="field-dot f-${c.field}"></i>${esc(c.title)}</span><span class="mono">問 ${quiz.i+1} / ${quiz.ids.length}</span></div>
-      <div class="qtext">${esc(q.q)}</div>
+      ${qHTML(q.q)}${q.code?`<pre class="qcode">${esc(q.code)}</pre>`:""}
       ${q.fig?FIG[q.fig]:""}
       ${q.rd?`<details class="rd"><summary>プログラムの読み方（1行ずつ）</summary><div class="tw"><table class="t"><tr><th>書いてあること</th><th>意味</th></tr>${q.rd.map(([c,m])=>`<tr><td class="mono">${esc(c)}</td><td>${esc(m)}</td></tr>`).join("")}</table></div><p class="small-muted" style="margin:6px 0 0">紙に変数（箱）ごとの列を作り、1行ずつ値を書き込むと解きやすくなります。くわしくは参考書「アルゴリズムとデータ構造」の擬似言語の章へ。</p></details>`:""}
       <div class="choices">${q.ch.map((t,k)=>{let cls="";if(answered){if(k===q.a)cls="correct";else if(k===quiz.picked)cls="wrong";}
@@ -4714,7 +4809,7 @@ function pastRunHTML(){
   const idx=answered?i-1:i, p=pqById(r.ids[idx]), pick=answered?r.picks[idx]:null;
   return `<div class="qcard" id="prun">${prog}
     <div class="qmeta"><span>${esc(pqTitle(p))} ・ ${esc(p.cat)}</span><span class="mono">${idx+1} / ${total} ・ ${okN}問正解 ・ ${mins}分</span></div>
-    <div class="qtext">${esc(p.q)}</div>${p.imgs?`<div class="small-muted" style="margin-top:4px">問題文・プログラム・解答群は下の原文画像のとおりです。</div>`:""}
+    ${qHTML(p.q)}${p.imgs?`<div class="small-muted" style="margin-top:4px">問題文・プログラム・解答群は下の原文画像のとおりです。</div>`:""}
     ${pqFig(p)}
     ${pqChoices(p,pick,answered,"data-ppick")}
     ${answered?`${pqExp(p,pick)}
@@ -4761,7 +4856,7 @@ function pastStartHTML(){
 function wrongReviewHTML(w){
   const p=w[3]&&pqById(w[3]); if(!p) return "";
   return `<details class="rd" style="margin-top:6px;width:100%" data-wr="${esc(w[3])}"><summary>問題と解説を見る</summary>
-    <div class="qtext" style="font-size:14.5px;margin-top:8px">${esc(p.q)}</div>${pqFig(p)}
+    ${qHTML(p.q,' style="font-size:14.5px;margin-top:8px"')}${pqFig(p)}
     ${pqChoices(p,w[4],true,"data-x")}${pqExp(p,w[4])}</details>`;
 }
 function pastStatsHTML(Lst,kind){
