@@ -216,6 +216,19 @@ main{max-width:1120px;margin:0 auto;padding:20px 16px 64px}
 .pl-dots{display:flex;gap:5px;justify-content:center;flex-wrap:wrap}
 .pl-dots i{width:8px;height:8px;border-radius:50%;background:var(--sunk)}
 .pl-dots i.on{background:var(--accent)}
+.choice.picked{border-color:var(--accent);background:var(--sunk);opacity:1}
+.conf{margin-top:10px;background:var(--sunk);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.conf-q{font-weight:700}
+.conf-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.conf-btns .btn{padding:10px 4px;font-size:14px}
+.conf-back{align-self:flex-start}
+.rd-tip{margin:8px 0;font-size:14px;background:var(--sunk);border-radius:10px;padding:8px 12px}
+.guessn{color:var(--ng)}
+.flash.rev{cursor:default}
+.flash.rev .def.big{font-size:17px;line-height:1.7;margin:8px 0}
+.rev-opts{display:flex;flex-direction:column;gap:8px;width:100%}
+.goal-row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.goal-row select{font:inherit;padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
 .lzv{position:fixed;inset:0;z-index:65;background:var(--bg);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px)}
 .lz-top{display:flex;align-items:center;gap:10px;padding-block:8px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));border-bottom:1px solid var(--line);background:var(--surface)}
 .lz-top .t{flex:1;min-width:0;font-weight:700;font-size:15px}
@@ -3391,28 +3404,28 @@ const Q = [
 {id:"H3",c:"hi",q:"高齢者や障害者を含め、できるだけ多くの人が情報やサービスを利用できる度合いを表すものはどれか。",ch:["ユーザビリティ","アクセシビリティ","スケーラビリティ","トレーサビリティ"],a:1,e:"アクセシビリティ。ユーザビリティは特定の利用者にとっての使いやすさ（有効さ・効率・満足度）です。"},
 {id:"H4",c:"hi",q:"コンピュータグラフィックスで、斜めの線や文字の輪郭に生じるギザギザを、中間色を使って滑らかに見せる技術はどれか。",ch:["アンチエイリアシング","レンダリング","テクスチャマッピング","モーフィング"],a:0,e:"アンチエイリアシング。レンダリングは3次元データから画像を作ること、テクスチャマッピングは表面に模様を貼ること、モーフィングはある形から別の形へ滑らかに変化させる手法です。"},
 {id:"H5",c:"hi",q:"商品コードにチェックディジットを付加する目的として、適切なものはどれか。",ch:["コードの入力誤りを検出する","同じコードが二重に登録されるのを防ぐ","コードから商品の内容が分かるようにする","コードを暗号化して盗み見を防ぐ"],a:0,e:"チェックディジットは、他の桁から計算した検査用の数字。入力された値で計算し直して一致しなければ、入力の誤りと分かります。"},
-{id:"p1",c:"algo",ps:1,q:"次のプログラムを実行した後の s の値はどれか。",code:"整数型: s ← 0\n整数型: i\nfor (i を 1 から 10 まで 1 ずつ増やす)\n  if (i mod 2 が 0 と等しい)\n    s ← s + i\n  endif\nendfor",ch:["25", "30", "45", "55"],a:1,e:"i が偶数（2で割った余りが0）のときだけ足します。2＋4＋6＋8＋10＝30。"},
-{id:"p2",c:"algo",ps:1,q:"次のプログラムを実行したとき、★の行が実行される回数はどれか。",code:"整数型の配列: a ← {3, 8, 2, 9, 5}\n整数型: m ← a[1]\n整数型: i\nfor (i を 2 から aの要素数 まで 1 ずつ増やす)\n  if (a[i] > m)\n    m ← a[i]    ★\n  endif\nendfor",ch:["1回", "2回", "3回", "4回"],a:1,e:"m は最初 3。i=2：8＞3 なので m=8（1回目）。i=3：2＞8 ではない。i=4：9＞8 なので m=9（2回目）。i=5：5＞9 ではない。よって2回。"},
-{id:"p3",c:"algo",ps:1,q:"関数 find を呼び出したときの戻り値はどれか。",code:"○整数型: find()\n  整数型の配列: a ← {4, 7, 1, 7}\n  整数型: i ← 1\n  while (i ≦ aの要素数 and a[i] ≠ 7)\n    i ← i + 1\n  endwhile\n  return i",ch:["1", "2", "3", "4"],a:1,e:"a[1]=4 は7ではないので i=2 へ。a[2]=7 で条件「a[i] ≠ 7」が偽になり、くり返しを抜けます。最初に見つかった 2 を返します（a[4] の7までは進みません）。"},
-{id:"p4",c:"algo",ps:1,q:"次のプログラムで、★の行（比べる回数）は何回実行されるか。",code:"整数型の配列: a ← {2, 5, 8, 12, 16, 23, 38, 56}\n整数型: lo ← 1, hi ← 8, mid\nwhile (lo ≦ hi)\n  mid ← (lo + hi) ÷ 2 の商\n  if (a[mid] が 23 と等しい)    ★\n    return mid\n  elseif (a[mid] < 23)\n    lo ← mid + 1\n  else\n    hi ← mid − 1\n  endif\nendwhile",ch:["1回", "2回", "3回", "6回"],a:1,e:"2分探索です。1回目：mid=(1+8)÷2=4、a[4]=12＜23 なので lo=5。2回目：mid=(5+8)÷2=6、a[6]=23 で見つかります。よって2回。"},
-{id:"p5",c:"algo",ps:1,q:"関数 gcd(48, 18) の戻り値はどれか。",code:"○整数型: gcd(整数型: a, 整数型: b)\n  整数型: r\n  while (b ≠ 0)\n    r ← a mod b\n    a ← b\n    b ← r\n  endwhile\n  return a",ch:["3", "6", "9", "18"],a:1,e:"ユークリッドの互除法（最大公約数）です。(48,18)→余り12→(18,12)→余り6→(12,6)→余り0→(6,0)で b=0 になり、a=6 を返します。"},
-{id:"p6",c:"algo",ps:1,q:"f(5) を呼び出したとき、関数 f は全部で何回呼び出されるか（最初の f(5) も数える）。",code:"○整数型: f(整数型: n)\n  if (n ≦ 2)\n    return 1\n  endif\n  return f(n − 1) + f(n − 2)",ch:["5回", "7回", "9回", "15回"],a:2,e:"f(5)→f(4),f(3)。f(4)→f(3),f(2)。f(3)→f(2),f(1) が2か所。数えると f(5)1回、f(4)1回、f(3)2回、f(2)3回、f(1)2回で、合計9回です。木の形に書くと数えやすくなります。"},
-{id:"p8",c:"algo",ps:1,q:"次のプログラムで、★の行は何回実行されるか。",code:"整数型: i, j, c ← 0\nfor (i を 1 から 4 まで 1 ずつ増やす)\n  for (j を i から 4 まで 1 ずつ増やす)\n    c ← c + 1    ★\n  endfor\nendfor",ch:["4回", "10回", "12回", "16回"],a:1,e:"内側の for は j が i から4まで。i=1 で4回、i=2 で3回、i=3 で2回、i=4 で1回。4＋3＋2＋1＝10回。"},
-{id:"p9",c:"algo",ps:1,q:"n が 1234 のとき、次のプログラムを実行した後の s の値はどれか。",code:"整数型: s ← 0\nwhile (n > 0)\n  s ← s + (n mod 10)\n  n ← n ÷ 10 の商\nendwhile",ch:["4", "10", "123", "1234"],a:1,e:"n mod 10 は一の位。4 を足して n=123、3 を足して n=12、2 を足して n=1、1 を足して n=0 で終わり。4＋3＋2＋1＝10（各桁の和）。"},
-{id:"p10",c:"algo",ps:1,q:"n が 1234 のとき、次のプログラムを実行した後の r の値はどれか。",code:"整数型: r ← 0\nwhile (n > 0)\n  r ← r × 10 + (n mod 10)\n  n ← n ÷ 10 の商\nendwhile",ch:["1234", "4321", "10", "4000"],a:1,e:"一の位を取り出して r の後ろに付けていきます。r=4 → 43 → 432 → 4321。数字を逆順にするプログラムです。"},
-{id:"p11",c:"algo",ps:1,q:"次のプログラムを実行した後の配列 a の内容はどれか。",code:"整数型の配列: a ← {5, 3, 8, 1, 4}\n整数型: j, k ← 1, tmp\nfor (j を 2 から 5 まで 1 ずつ増やす)\n  if (a[j] < a[k])\n    k ← j\n  endif\nendfor\ntmp ← a[1]\na[1] ← a[k]\na[k] ← tmp",ch:["{1, 3, 8, 5, 4}", "{1, 3, 4, 5, 8}", "{3, 5, 8, 1, 4}", "{1, 5, 3, 8, 4}"],a:0,e:"選択ソートの1回分です。一番小さい値の場所 k を探すと a[4]=1 なので k=4。a[1] と a[4] を入れ替えて {1, 3, 8, 5, 4}。ほかはまだ並べ替えていません。"},
-{id:"p12",c:"algo",ps:1,q:"次のプログラムを実行した後の配列 a の内容はどれか（挿入ソートの途中まで）。",code:"整数型の配列: a ← {4, 2, 5, 1, 3}\n整数型: i, j, x\nfor (i を 2 から 4 まで 1 ずつ増やす)\n  x ← a[i]\n  j ← i − 1\n  while (j ≧ 1 and a[j] > x)\n    a[j + 1] ← a[j]\n    j ← j − 1\n  endwhile\n  a[j + 1] ← x\nendfor",ch:["{1, 2, 3, 4, 5}", "{1, 2, 4, 5, 3}", "{2, 4, 5, 1, 3}", "{2, 4, 1, 5, 3}"],a:1,e:"前から4つ目までを整列します。i=2：2を前に入れて {2,4,5,1,3}。i=3：5はそのまま。i=4：1を先頭まで入れて {1,2,4,5,3}。5つ目の3はまだ動かしていません。"},
-{id:"p13",c:"algo",ps:1,q:"次のプログラムを実行した後の c の値はどれか。",code:"整数型: n, i, c ← 0\n論理型: ok\nfor (n を 2 から 20 まで 1 ずつ増やす)\n  ok ← true\n  for (i を 2 から n − 1 まで 1 ずつ増やす)\n    if (n mod i が 0 と等しい)\n      ok ← false\n    endif\n  endfor\n  if (ok)\n    c ← c + 1\n  endif\nendfor",ch:["7", "8", "9", "10"],a:1,e:"n が 2〜n−1 のどれでも割り切れなければ素数として数えます。2〜20の素数は 2, 3, 5, 7, 11, 13, 17, 19 の8個。"},
-{id:"p14",c:"algo",ps:1,q:"次のプログラムを実行した後の s の値はどれか。",code:"整数型の二次元配列: m（3行3列）\n整数型: i, j, s ← 0\nfor (i を 1 から 3 まで 1 ずつ増やす)\n  for (j を 1 から 3 まで 1 ずつ増やす)\n    m[i, j] ← i × j\n  endfor\nendfor\nfor (i を 1 から 3 まで 1 ずつ増やす)\n  s ← s + m[i, i]\nendfor",ch:["6", "14", "18", "36"],a:1,e:"後半は m[1,1]、m[2,2]、m[3,3]（右下がりの対角線）だけを足します。1×1＋2×2＋3×3＝1＋4＋9＝14。"},
-{id:"p15",c:"algo",ps:1,q:"次のプログラムで出力される順番はどれか。",code:"文字型の配列: val ← {\"A\", \"B\", \"C\", \"D\"}\n整数型の配列: next ← {4, 0, 1, 2}\n整数型: p ← 3\nwhile (p ≠ 0)\n  val[p] を出力する\n  p ← next[p]\nendwhile",ch:["A, B, C, D", "C, A, D, B", "C, B, A, D", "D, B, A, C"],a:1,e:"連結リストをたどります。p=3 で C を出力、next[3]=1 へ。A を出力、next[1]=4 へ。D を出力、next[4]=2 へ。B を出力、next[2]=0 で終わり。C, A, D, B。"},
-{id:"p16",c:"algo",ps:1,q:"n が 100 のとき、★の行は何回実行されるか。",code:"整数型: c ← 0\nwhile (n > 1)\n  n ← n ÷ 2 の商    ★\n  c ← c + 1\nendwhile",ch:["5回", "6回", "7回", "50回"],a:1,e:"n は 100→50→25→12→6→3→1 と変わり、1 になったら止まります。矢印の数を数えて6回。半分にしていく処理の回数は、およそ log₂n です。"},
-{id:"p17",c:"algo",ps:1,q:"次のプログラムを実行した後の x の値はどれか。",code:"整数型: x ← 1\n整数型: i\nfor (i を 1 から 5 まで 1 ずつ増やす)\n  x ← x × 2 + 1\nendfor",ch:["11", "31", "32", "63"],a:3,e:"x は 1→3→7→15→31→63。5回くり返すので63。2進数で見ると、右に1を1つずつ足していく（1, 11, 111, …）計算です。"},
-{id:"p18",c:"algo",ps:1,q:"次のプログラムを実行した後の配列 a の内容はどれか。",code:"整数型の配列: a ← {1, 2, 3, 4, 5}\n整数型: i, tmp, n ← 5\nfor (i を 1 から n まで 1 ずつ増やす)\n  tmp ← a[i]\n  a[i] ← a[n − i + 1]\n  a[n − i + 1] ← tmp\nendfor",ch:["{5, 4, 3, 2, 1}", "{1, 2, 3, 4, 5}", "{5, 2, 3, 4, 1}", "{2, 3, 4, 5, 1}"],a:1,e:"ひっかけ問題です。i=1,2 で前後を入れ替えて {5,4,3,2,1} になりますが、i=4,5 でもう一度同じ組を入れ替えるので元に戻ります。逆順にしたいなら、くり返しは n÷2 の商（＝2）まで。"},
-{id:"p19",c:"algo",ps:1,q:"power(2, 10) を呼び出したとき、関数 power は全部で何回呼び出されるか（最初の呼び出しも数える）。",code:"○整数型: power(整数型: x, 整数型: n)\n  整数型: y\n  if (n が 0 と等しい)\n    return 1\n  elseif (n mod 2 が 0 と等しい)\n    y ← power(x, n ÷ 2 の商)\n    return y × y\n  else\n    return x × power(x, n − 1)\n  endif",ch:["4回", "6回", "10回", "11回"],a:1,e:"n は 10→5→4→2→1→0 と変わります（偶数なら半分、奇数なら1引く）。呼び出しは6回。10回掛けるより少ない回数で 2¹⁰＝1024 を求める工夫です。"},
-{id:"p20",c:"algo",ps:1,q:"次のプログラムで、while を抜けたときの k の値はどれか。",code:"整数型の配列: a ← {1, 4, 7, 9}, b ← {3, 6}\n整数型の配列: c ← {}\n整数型: i ← 1, j ← 1, k ← 0\nwhile (i ≦ aの要素数 and j ≦ bの要素数)\n  k ← k + 1\n  if (a[i] ≦ b[j])\n    c の末尾に a[i] を追加する\n    i ← i + 1\n  else\n    c の末尾に b[j] を追加する\n    j ← j + 1\n  endif\nendwhile",ch:["4", "5", "6", "2"],a:0,e:"小さいほうを順に c に入れます（マージ）。1, 3, 4, 6 と入れた時点で b を使い切り（j=3）、条件が偽になって抜けます。k=4。残りの 7, 9 は、この後に別の処理で付け足します。"},
-{id:"p21",c:"algo",ps:1,q:"次のプログラムを実行した後の配列 cnt の内容はどれか。",code:"整数型の配列: a ← {2, 3, 2, 1, 3, 2}\n整数型の配列: cnt ← {0, 0, 0}\n整数型: i\nfor (i を 1 から aの要素数 まで 1 ずつ増やす)\n  cnt[a[i]] ← cnt[a[i]] + 1\nendfor",ch:["{1, 3, 2}", "{2, 3, 2}", "{1, 2, 3}", "{3, 2, 1}"],a:0,e:"a[i] の値を「要素番号」として使い、その数が何回出たかを数えます。1 は1回、2 は3回、3 は2回なので {1, 3, 2}。"},
-{id:"p22",c:"algo",ps:1,q:"n が 6 のとき、次のプログラムを実行した後の c の値はどれか。",code:"整数型: c ← 0\nwhile (n ≠ 1)\n  if (n mod 2 が 0 と等しい)\n    n ← n ÷ 2 の商\n  else\n    n ← 3 × n + 1\n  endif\n  c ← c + 1\nendwhile",ch:["6", "8", "9", "16"],a:1,e:"n は 6→3→10→5→16→8→4→2→1 と変わります。矢印の数を数えて8。手でトレース表を書いて追う練習にぴったりの問題です。"},
-{id:"p7",c:"algo",ps:1,q:"空のキューに対して次の操作を順に行った後、キューの先頭にある値はどれか。",code:"enqueue(5)\nenqueue(3)\ndequeue()\nenqueue(7)\ndequeue()\nenqueue(2)",ch:["5", "3", "7", "2"],a:2,e:"キューは先に入れたものから出ます（FIFO）。[5]→[5,3]→5を出して[3]→[3,7]→3を出して[7]→[7,2]。先頭は7。"},
+{id:"ps1",c:"algo",ps:1,q:"次のプログラムを実行した後の s の値はどれか。",code:"整数型: s ← 0\n整数型: i\nfor (i を 1 から 10 まで 1 ずつ増やす)\n  if (i mod 2 が 0 と等しい)\n    s ← s + i\n  endif\nendfor",ch:["25", "30", "45", "55"],a:1,e:"i が偶数（2で割った余りが0）のときだけ足します。2＋4＋6＋8＋10＝30。"},
+{id:"ps2",c:"algo",ps:1,q:"次のプログラムを実行したとき、★の行が実行される回数はどれか。",code:"整数型の配列: a ← {3, 8, 2, 9, 5}\n整数型: m ← a[1]\n整数型: i\nfor (i を 2 から aの要素数 まで 1 ずつ増やす)\n  if (a[i] > m)\n    m ← a[i]    ★\n  endif\nendfor",ch:["1回", "2回", "3回", "4回"],a:1,e:"m は最初 3。i=2：8＞3 なので m=8（1回目）。i=3：2＞8 ではない。i=4：9＞8 なので m=9（2回目）。i=5：5＞9 ではない。よって2回。"},
+{id:"ps3",c:"algo",ps:1,q:"関数 find を呼び出したときの戻り値はどれか。",code:"○整数型: find()\n  整数型の配列: a ← {4, 7, 1, 7}\n  整数型: i ← 1\n  while (i ≦ aの要素数 and a[i] ≠ 7)\n    i ← i + 1\n  endwhile\n  return i",ch:["1", "2", "3", "4"],a:1,e:"a[1]=4 は7ではないので i=2 へ。a[2]=7 で条件「a[i] ≠ 7」が偽になり、くり返しを抜けます。最初に見つかった 2 を返します（a[4] の7までは進みません）。"},
+{id:"ps4",c:"algo",ps:1,q:"次のプログラムで、★の行（比べる回数）は何回実行されるか。",code:"整数型の配列: a ← {2, 5, 8, 12, 16, 23, 38, 56}\n整数型: lo ← 1, hi ← 8, mid\nwhile (lo ≦ hi)\n  mid ← (lo + hi) ÷ 2 の商\n  if (a[mid] が 23 と等しい)    ★\n    return mid\n  elseif (a[mid] < 23)\n    lo ← mid + 1\n  else\n    hi ← mid − 1\n  endif\nendwhile",ch:["1回", "2回", "3回", "6回"],a:1,e:"2分探索です。1回目：mid=(1+8)÷2=4、a[4]=12＜23 なので lo=5。2回目：mid=(5+8)÷2=6、a[6]=23 で見つかります。よって2回。"},
+{id:"ps5",c:"algo",ps:1,q:"関数 gcd(48, 18) の戻り値はどれか。",code:"○整数型: gcd(整数型: a, 整数型: b)\n  整数型: r\n  while (b ≠ 0)\n    r ← a mod b\n    a ← b\n    b ← r\n  endwhile\n  return a",ch:["3", "6", "9", "18"],a:1,e:"ユークリッドの互除法（最大公約数）です。(48,18)→余り12→(18,12)→余り6→(12,6)→余り0→(6,0)で b=0 になり、a=6 を返します。"},
+{id:"ps6",c:"algo",ps:1,q:"f(5) を呼び出したとき、関数 f は全部で何回呼び出されるか（最初の f(5) も数える）。",code:"○整数型: f(整数型: n)\n  if (n ≦ 2)\n    return 1\n  endif\n  return f(n − 1) + f(n − 2)",ch:["5回", "7回", "9回", "15回"],a:2,e:"f(5)→f(4),f(3)。f(4)→f(3),f(2)。f(3)→f(2),f(1) が2か所。数えると f(5)1回、f(4)1回、f(3)2回、f(2)3回、f(1)2回で、合計9回です。木の形に書くと数えやすくなります。"},
+{id:"ps8",c:"algo",ps:1,q:"次のプログラムで、★の行は何回実行されるか。",code:"整数型: i, j, c ← 0\nfor (i を 1 から 4 まで 1 ずつ増やす)\n  for (j を i から 4 まで 1 ずつ増やす)\n    c ← c + 1    ★\n  endfor\nendfor",ch:["4回", "10回", "12回", "16回"],a:1,e:"内側の for は j が i から4まで。i=1 で4回、i=2 で3回、i=3 で2回、i=4 で1回。4＋3＋2＋1＝10回。"},
+{id:"ps9",c:"algo",ps:1,q:"n が 1234 のとき、次のプログラムを実行した後の s の値はどれか。",code:"整数型: s ← 0\nwhile (n > 0)\n  s ← s + (n mod 10)\n  n ← n ÷ 10 の商\nendwhile",ch:["4", "10", "123", "1234"],a:1,e:"n mod 10 は一の位。4 を足して n=123、3 を足して n=12、2 を足して n=1、1 を足して n=0 で終わり。4＋3＋2＋1＝10（各桁の和）。"},
+{id:"ps10",c:"algo",ps:1,q:"n が 1234 のとき、次のプログラムを実行した後の r の値はどれか。",code:"整数型: r ← 0\nwhile (n > 0)\n  r ← r × 10 + (n mod 10)\n  n ← n ÷ 10 の商\nendwhile",ch:["1234", "4321", "10", "4000"],a:1,e:"一の位を取り出して r の後ろに付けていきます。r=4 → 43 → 432 → 4321。数字を逆順にするプログラムです。"},
+{id:"ps11",c:"algo",ps:1,q:"次のプログラムを実行した後の配列 a の内容はどれか。",code:"整数型の配列: a ← {5, 3, 8, 1, 4}\n整数型: j, k ← 1, tmp\nfor (j を 2 から 5 まで 1 ずつ増やす)\n  if (a[j] < a[k])\n    k ← j\n  endif\nendfor\ntmp ← a[1]\na[1] ← a[k]\na[k] ← tmp",ch:["{1, 3, 8, 5, 4}", "{1, 3, 4, 5, 8}", "{3, 5, 8, 1, 4}", "{1, 5, 3, 8, 4}"],a:0,e:"選択ソートの1回分です。一番小さい値の場所 k を探すと a[4]=1 なので k=4。a[1] と a[4] を入れ替えて {1, 3, 8, 5, 4}。ほかはまだ並べ替えていません。"},
+{id:"ps12",c:"algo",ps:1,q:"次のプログラムを実行した後の配列 a の内容はどれか（挿入ソートの途中まで）。",code:"整数型の配列: a ← {4, 2, 5, 1, 3}\n整数型: i, j, x\nfor (i を 2 から 4 まで 1 ずつ増やす)\n  x ← a[i]\n  j ← i − 1\n  while (j ≧ 1 and a[j] > x)\n    a[j + 1] ← a[j]\n    j ← j − 1\n  endwhile\n  a[j + 1] ← x\nendfor",ch:["{1, 2, 3, 4, 5}", "{1, 2, 4, 5, 3}", "{2, 4, 5, 1, 3}", "{2, 4, 1, 5, 3}"],a:1,e:"前から4つ目までを整列します。i=2：2を前に入れて {2,4,5,1,3}。i=3：5はそのまま。i=4：1を先頭まで入れて {1,2,4,5,3}。5つ目の3はまだ動かしていません。"},
+{id:"ps13",c:"algo",ps:1,q:"次のプログラムを実行した後の c の値はどれか。",code:"整数型: n, i, c ← 0\n論理型: ok\nfor (n を 2 から 20 まで 1 ずつ増やす)\n  ok ← true\n  for (i を 2 から n − 1 まで 1 ずつ増やす)\n    if (n mod i が 0 と等しい)\n      ok ← false\n    endif\n  endfor\n  if (ok)\n    c ← c + 1\n  endif\nendfor",ch:["7", "8", "9", "10"],a:1,e:"n が 2〜n−1 のどれでも割り切れなければ素数として数えます。2〜20の素数は 2, 3, 5, 7, 11, 13, 17, 19 の8個。"},
+{id:"ps14",c:"algo",ps:1,q:"次のプログラムを実行した後の s の値はどれか。",code:"整数型の二次元配列: m（3行3列）\n整数型: i, j, s ← 0\nfor (i を 1 から 3 まで 1 ずつ増やす)\n  for (j を 1 から 3 まで 1 ずつ増やす)\n    m[i, j] ← i × j\n  endfor\nendfor\nfor (i を 1 から 3 まで 1 ずつ増やす)\n  s ← s + m[i, i]\nendfor",ch:["6", "14", "18", "36"],a:1,e:"後半は m[1,1]、m[2,2]、m[3,3]（右下がりの対角線）だけを足します。1×1＋2×2＋3×3＝1＋4＋9＝14。"},
+{id:"ps15",c:"algo",ps:1,q:"次のプログラムで出力される順番はどれか。",code:"文字型の配列: val ← {\"A\", \"B\", \"C\", \"D\"}\n整数型の配列: next ← {4, 0, 1, 2}\n整数型: p ← 3\nwhile (p ≠ 0)\n  val[p] を出力する\n  p ← next[p]\nendwhile",ch:["A, B, C, D", "C, A, D, B", "C, B, A, D", "D, B, A, C"],a:1,e:"連結リストをたどります。p=3 で C を出力、next[3]=1 へ。A を出力、next[1]=4 へ。D を出力、next[4]=2 へ。B を出力、next[2]=0 で終わり。C, A, D, B。"},
+{id:"ps16",c:"algo",ps:1,q:"n が 100 のとき、★の行は何回実行されるか。",code:"整数型: c ← 0\nwhile (n > 1)\n  n ← n ÷ 2 の商    ★\n  c ← c + 1\nendwhile",ch:["5回", "6回", "7回", "50回"],a:1,e:"n は 100→50→25→12→6→3→1 と変わり、1 になったら止まります。矢印の数を数えて6回。半分にしていく処理の回数は、およそ log₂n です。"},
+{id:"ps17",c:"algo",ps:1,q:"次のプログラムを実行した後の x の値はどれか。",code:"整数型: x ← 1\n整数型: i\nfor (i を 1 から 5 まで 1 ずつ増やす)\n  x ← x × 2 + 1\nendfor",ch:["11", "31", "32", "63"],a:3,e:"x は 1→3→7→15→31→63。5回くり返すので63。2進数で見ると、右に1を1つずつ足していく（1, 11, 111, …）計算です。"},
+{id:"ps18",c:"algo",ps:1,q:"次のプログラムを実行した後の配列 a の内容はどれか。",code:"整数型の配列: a ← {1, 2, 3, 4, 5}\n整数型: i, tmp, n ← 5\nfor (i を 1 から n まで 1 ずつ増やす)\n  tmp ← a[i]\n  a[i] ← a[n − i + 1]\n  a[n − i + 1] ← tmp\nendfor",ch:["{5, 4, 3, 2, 1}", "{1, 2, 3, 4, 5}", "{5, 2, 3, 4, 1}", "{2, 3, 4, 5, 1}"],a:1,e:"ひっかけ問題です。i=1,2 で前後を入れ替えて {5,4,3,2,1} になりますが、i=4,5 でもう一度同じ組を入れ替えるので元に戻ります。逆順にしたいなら、くり返しは n÷2 の商（＝2）まで。"},
+{id:"ps19",c:"algo",ps:1,q:"power(2, 10) を呼び出したとき、関数 power は全部で何回呼び出されるか（最初の呼び出しも数える）。",code:"○整数型: power(整数型: x, 整数型: n)\n  整数型: y\n  if (n が 0 と等しい)\n    return 1\n  elseif (n mod 2 が 0 と等しい)\n    y ← power(x, n ÷ 2 の商)\n    return y × y\n  else\n    return x × power(x, n − 1)\n  endif",ch:["4回", "6回", "10回", "11回"],a:1,e:"n は 10→5→4→2→1→0 と変わります（偶数なら半分、奇数なら1引く）。呼び出しは6回。10回掛けるより少ない回数で 2¹⁰＝1024 を求める工夫です。"},
+{id:"ps20",c:"algo",ps:1,q:"次のプログラムで、while を抜けたときの k の値はどれか。",code:"整数型の配列: a ← {1, 4, 7, 9}, b ← {3, 6}\n整数型の配列: c ← {}\n整数型: i ← 1, j ← 1, k ← 0\nwhile (i ≦ aの要素数 and j ≦ bの要素数)\n  k ← k + 1\n  if (a[i] ≦ b[j])\n    c の末尾に a[i] を追加する\n    i ← i + 1\n  else\n    c の末尾に b[j] を追加する\n    j ← j + 1\n  endif\nendwhile",ch:["4", "5", "6", "2"],a:0,e:"小さいほうを順に c に入れます（マージ）。1, 3, 4, 6 と入れた時点で b を使い切り（j=3）、条件が偽になって抜けます。k=4。残りの 7, 9 は、この後に別の処理で付け足します。"},
+{id:"ps21",c:"algo",ps:1,q:"次のプログラムを実行した後の配列 cnt の内容はどれか。",code:"整数型の配列: a ← {2, 3, 2, 1, 3, 2}\n整数型の配列: cnt ← {0, 0, 0}\n整数型: i\nfor (i を 1 から aの要素数 まで 1 ずつ増やす)\n  cnt[a[i]] ← cnt[a[i]] + 1\nendfor",ch:["{1, 3, 2}", "{2, 3, 2}", "{1, 2, 3}", "{3, 2, 1}"],a:0,e:"a[i] の値を「要素番号」として使い、その数が何回出たかを数えます。1 は1回、2 は3回、3 は2回なので {1, 3, 2}。"},
+{id:"ps22",c:"algo",ps:1,q:"n が 6 のとき、次のプログラムを実行した後の c の値はどれか。",code:"整数型: c ← 0\nwhile (n ≠ 1)\n  if (n mod 2 が 0 と等しい)\n    n ← n ÷ 2 の商\n  else\n    n ← 3 × n + 1\n  endif\n  c ← c + 1\nendwhile",ch:["6", "8", "9", "16"],a:1,e:"n は 6→3→10→5→16→8→4→2→1 と変わります。矢印の数を数えて8。手でトレース表を書いて追う練習にぴったりの問題です。"},
+{id:"ps7",c:"algo",ps:1,q:"空のキューに対して次の操作を順に行った後、キューの先頭にある値はどれか。",code:"enqueue(5)\nenqueue(3)\ndequeue()\nenqueue(7)\ndequeue()\nenqueue(2)",ch:["5", "3", "7", "2"],a:2,e:"キューは先に入れたものから出ます（FIFO）。[5]→[5,3]→5を出して[3]→[3,7]→3を出して[7]→[7,2]。先頭は7。"},
 {id:"b1",c:"algo",ps:1,q:"関数 maxIndex は、配列 a の中で最大の値の要素番号を返す。最大の値が複数あるときは、いちばん前の要素番号を返す。［ア］に入れる正しい答えはどれか。",code:"○整数型: maxIndex(整数型の配列: a)\n  整数型: i, k ← 1\n  for (i を 2 から aの要素数 まで 1 ずつ増やす)\n    if (a[i]  ［ア］  a[k])\n      k ← i\n    endif\n  endfor\n  return k",ch:[">", "≧", "<", "＝"],a:0,e:"大きいものが見つかったときだけ k を変えます。「≧」だと同じ値のときも k が後ろに動き、いちばん後ろの要素番号になってしまいます。例：{3, 9, 2, 9, 4} なら「>」で2、「≧」で4。"},
 {id:"b2",c:"algo",ps:1,q:"関数 average は、配列 a の値の平均を返す。［ア］に入れる正しい答えはどれか。",code:"○実数型: average(整数型の配列: a)\n  整数型: i, s ← 0\n  for (i を 1 から aの要素数 まで 1 ずつ増やす)\n    s ← s + a[i]\n  endfor\n  return s ÷ ［ア］",ch:["aの要素数", "aの要素数 − 1", "i", "s"],a:0,e:"平均は「合計 ÷ 個数」。個数は aの要素数です。i は for を抜けた後の値なので使いません（試験ではループの後の変数の値を使わない書き方をします）。"},
 {id:"b3",c:"algo",ps:1,q:"関数 search は、小さい順に並んだ配列 a から t を2分探索で探し、見つかれば要素番号を、なければ −1 を返す。［ア］に入れる正しい答えはどれか。",code:"○整数型: search(整数型の配列: a, 整数型: t)\n  整数型: lo ← 1, hi ← aの要素数, mid\n  while (lo ≦ hi)\n    mid ← (lo + hi) ÷ 2 の商\n    if (a[mid] が t と等しい)\n      return mid\n    elseif (a[mid] < t)\n      ［ア］\n    else\n      hi ← mid − 1\n    endif\n  endwhile\n  return −1",ch:["lo ← mid + 1", "lo ← mid", "hi ← mid − 1", "hi ← mid + 1"],a:0,e:"a[mid] が t より小さいなら、t は mid より後ろにあります。探す範囲の左端を mid の1つ後ろにします。「lo ← mid」だと範囲が縮まらず、終わらないことがあります。"},
@@ -3528,11 +3541,13 @@ const today=()=>dstr(new Date());
 const addDays=(s,n)=>{const d=new Date(s+"T00:00:00");d.setDate(d.getDate()+n);return dstr(d);};
 const INT=[2,2,4,7,14,30]; // 復習間隔（日）。正解するたびに段が上がる。前日にやったものは翌日に出さない
 const OLD_INT=[1,1,3,7,14,30]; // 以前の間隔（最後にやった日の推定に使う）
-const GOAL={q:5,c:10};
+const GOAL={q:10,c:20};
+function goalSync(){ const g=(typeof S!=="undefined"&&S.goal)||{}; GOAL.q=[5,10,15,20].includes(g.q)?g.q:10; GOAL.c=[10,20,30,40].includes(g.c)?g.c:20; }
 
 const KEY="fe-study-v1";
 function load(){ try{ const v=localStorage.getItem(KEY); if(v) return JSON.parse(v); }catch(e){} return null; }
 const S=Object.assign({tasks:{},read:{},qs:{},cards:{},known:{},days:{},exam:"",ch:"kiso",hideInstall:false,voice:true},load()||{});
+goalSync();
 // 旧データの移行
 Object.values(S.qs).forEach(s=>{ if(s.due===undefined){ s.box=s.last?1:0; s.due=s.last?addDays(today(),1):today(); } });
 Object.keys(S.known||{}).forEach(id=>{ if(!S.cards[id]) S.cards[id]={box:2,due:addDays(today(),3)}; }); S.known={};
@@ -3553,7 +3568,8 @@ function normBook(st){
     const o=nc[nk]; nc[nk]=!o?r:((r.at||0)>(o.at||0)||(r.seen||"")>(o.seen||""))?r:o; });
   st.cards=nc; if(st.ch==="ai") st.ch="kiso2"; st.bookVer=BOOK_VER; return st;
 }
-normBook(S);
+function fixPsIds(st){ if(!st||!st.qs||st.psFix) return st; for(let n=7;n<=22;n++){ const o=st.qs["p"+n]; if(o&&!st.qs["ps"+n]) st.qs["ps"+n]=o; delete st.qs["p"+n]; } st.psFix=1; return st; }
+normBook(S); fixPsIds(S);
 const seenRecently=s=>!!(s&&s.seen&&s.seen>=addDays(today(),-1)); // 昨日か今日にやった
 function saveLocal(){ try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} }
 function save(touch=true){
@@ -3579,7 +3595,7 @@ const stable=o=>Array.isArray(o)?"["+o.map(stable).join(",")+"]":o&&typeof o==="
 const hasData=s=>["days","qs","cards","tasks","read"].some(k=>Object.keys(s[k]||{}).length>0);
 // 2つの端末の記録を合わせる。日ごとの回数は大きいほう、問題・カードはより進んだほう、設定は新しいほう
 function mergeState(a,b){
-  normBook(a); normBook(b);
+  normBook(a); normBook(b); fixPsIds(a); fixPsIds(b);
   const newer=(a.updatedAt||0)>=(b.updatedAt||0)?a:b, older=newer===a?b:a;
   const o=Object.assign({},older,newer);
   o.tasks=Object.assign({},older.tasks,newer.tasks);
@@ -3599,6 +3615,7 @@ function mergeState(a,b){
   o.known={}; o.updatedAt=Math.max(a.updatedAt||0,b.updatedAt||0);
   o.secs=Object.assign({},older.secs,newer.secs); o.dr=Object.assign({},older.dr,newer.dr);
   o.lessons=Object.assign({},older.lessons,newer.lessons);
+  o.goal=Object.assign({},older.goal,newer.goal);
   inferSeen(o);
   return o;
 }
@@ -3751,7 +3768,8 @@ function toast(msg){ const t=$("#toast"); t.textContent=msg; t.hidden=true; void
 function renderPill(){ const n=streak(); $("#hdr-streak").innerHTML=FLAME(!isActive(today()))+`<span class="mono">${n}</span>日`; }
 
 /* ================= 集計 ================= */
-function catStats(cid){ let n=0,ok=0,tried=0; Q.filter(q=>!cid||q.c===cid).forEach(q=>{n++;const s=S.qs[q.id];if(s){tried++;if(s.last)ok++;}}); return {n,ok,tried}; }
+const CONF=[["sure","自信あり"],["unsure","ちょっと迷った"],["guess","勘"]], CONFL={sure:"自信あり",unsure:"ちょっと迷った",guess:"勘"};
+function catStats(cid){ let n=0,ok=0,tried=0,guess=0; Q.filter(q=>!cid||q.c===cid).forEach(q=>{n++;const s=S.qs[q.id];if(s){tried++;if(s.last)ok++;if(s.last&&s.conf==="guess")guess++;}}); return {n,ok,tried,guess}; }
 function fieldStats(f){ let n=0,ok=0,tried=0; Q.forEach(q=>{if(fieldOf(q.c)!==f)return;n++;const s=S.qs[q.id];if(s){tried++;if(s.last)ok++;}}); return {n,ok,tried}; }
 const allTasks=()=>WEEKS.flatMap(w=>w.tasks);
 // 読む・解くの付いたタスクは、実際に読んだ・解いたら自動で完了にする（計画画面で外したものは外したまま）
@@ -3779,6 +3797,7 @@ Object.keys(TABL).forEach(v=>{ $("#tab-"+v).innerHTML=ic(ICON[TABL[v][0]])+`<spa
 let current="home";
 function show(v){
   if(!VIEWS.includes(v)) v="home";
+  goalSync();
   current=v; { const jb=$("#jump-bar"); if(jb) jb.hidden=true; }
   VIEWS.forEach(x=>{ $("#v-"+x).hidden=x!==v; const tb=$("#tab-"+x); if(tb) tb.setAttribute("aria-selected",x===v); });
   ({home:renderHome,plan:renderPlan,book:renderBook,quiz:renderQuiz,cards:renderCards,help:renderHelp,past:renderPast})[v]();
@@ -4075,11 +4094,11 @@ function renderHome(){
       <div class="slots">
         <div class="slot ${ss.am?"ok compact":""} ${slotNow==="am"&&!ss.am?"now":""}">
           <div class="slot-h">${ck(ss.am)}<span class="when">朝</span><span class="dur">10分</span>${nowTag("am")}${ss.am?`<span class="done-note">完了 ・ カード${d.c}枚</span><button class="btn small" data-open-d="next">もっと</button>`:""}</div>
-          <div class="slot-body"><div style="min-width:0"><div class="what">暗記カードを10枚</div><div class="hint">スマホだけでOK。復習の札が先に出ます</div><div class="bar"><i style="width:${cDone/GOAL.c*100}%"></i></div><span class="cnt">${d.c} / ${GOAL.c} 枚${dc?`・復習待ち ${dc}枚`:""}</span>${!ss.am?`<button class="linkbtn" data-manual="am">やったのに記録が消えた？ 手で記録する</button>`:""}</div>${ss.am?`<button class="btn" data-open-d="next">明日の分を先取り</button>`:`<button class="btn primary" data-open-d="today">今日のカード</button>`}</div>
+          <div class="slot-body"><div style="min-width:0"><div class="what">暗記カードを${GOAL.c}枚</div><div class="hint">スマホだけでOK。復習の札が先に出ます</div><div class="bar"><i style="width:${cDone/GOAL.c*100}%"></i></div><span class="cnt">${d.c} / ${GOAL.c} 枚${dc?`・復習待ち ${dc}枚`:""}</span>${!ss.am?`<button class="linkbtn" data-manual="am">やったのに記録が消えた？ 手で記録する</button>`:""}</div>${ss.am?`<button class="btn" data-open-d="next">明日の分を先取り</button>`:`<button class="btn primary" data-open-d="today">今日のカード</button>`}</div>
         </div>
         <div class="slot ${ss.noon?"ok compact":""} ${slotNow==="noon"&&!ss.noon?"now":""}">
           <div class="slot-h">${ck(ss.noon)}<span class="when">昼</span><span class="dur">10分</span>${nowTag("noon")}${ss.noon?`<span class="done-note">完了 ・ 問題${d.q}問</span><button class="btn small" data-open-q="next">もっと</button>`:""}</div>
-          <div class="slot-body"><div style="min-width:0"><div class="what">今日の5問（科目A形式）</div><div class="hint">1問2分が目安。間違えたら解説まで読む</div><div class="bar"><i style="width:${qDone/GOAL.q*100}%"></i></div><span class="cnt">${d.q} / ${GOAL.q} 問${dq?`・復習待ち ${dq}問`:""}</span>${!ss.noon?`<button class="linkbtn" data-manual="noon">やったのに記録が消えた？ 手で記録する</button>`:""}</div>${ss.noon?`<button class="btn" data-open-q="next">明日の分を先取り</button>`:`<button class="btn primary" data-open-q="today">今日の5問</button>`}</div>
+          <div class="slot-body"><div style="min-width:0"><div class="what">今日の${GOAL.q}問（科目A形式）</div><div class="hint">1問2分が目安。間違えたら解説まで読む</div><div class="bar"><i style="width:${qDone/GOAL.q*100}%"></i></div><span class="cnt">${d.q} / ${GOAL.q} 問${dq?`・復習待ち ${dq}問`:""}</span>${!ss.noon?`<button class="linkbtn" data-manual="noon">やったのに記録が消えた？ 手で記録する</button>`:""}</div>${ss.noon?`<button class="btn" data-open-q="next">明日の分を先取り</button>`:`<button class="btn primary" data-open-q="today">今日の5問</button>`}</div>
         </div>
         <div class="slot ${ss.night?"ok compact":""} ${slotNow==="night"&&!ss.night?"now":""}">
           <div class="slot-h">${ck(ss.night)}<span class="when">夜</span><span class="dur">${NL===120?"2時間":"1時間"}</span>${nowTag("night")}${ss.night?`<span class="done-note">完了 ・ ${nightCount(t)}/4</span>`:""}
@@ -4176,16 +4195,22 @@ function renderHome(){
 }
 
 /* ================= カリキュラム ================= */
+function bindGoal(){ ["q","c"].forEach(k=>{ const el=$("#goal-"+k); if(el) el.addEventListener("change",()=>{ S.goal=Object.assign({},S.goal,{[k]:+el.value}); goalSync(); save(); if(k==="q"&&quiz&&quiz.cat==="today"&&quiz.i===0&&quiz.picked==null) quiz=null; if(k==="c"&&deck&&deck.cat==="today"&&deck.i===0) deck=null; toast(`1日の量：問題${GOAL.q}問・カード${GOAL.c}枚にしました`); renderPlan(); }); }); }
 function renderPlan(){
+  setTimeout(bindGoal,0);
   $("#v-plan").innerHTML=`
   <div><div class="eyebrow">8週間プラン ／ 1日 約1時間20分〜2時間20分</div>
   <h2 style="font-size:26px;margin-top:4px">カリキュラム</h2>
   <p class="lead">前半4週で科目Aの土台、5〜6週でネットワーク・セキュリティ・AI、7週で文系分野、8週で本番形式の演習です。内容は基本情報のシラバスVer.9.2（2026年1月改訂）に合わせています。</p></div>
   ${roadHTML()}
+  <div class="panel goalset"><div class="eyebrow">1日の量</div>
+    <div class="goal-row"><label for="goal-q">昼の問題</label><select id="goal-q">${[5,10,15,20].map(n=>`<option value="${n}" ${GOAL.q===n?"selected":""}>${n}問</option>`).join("")}</select>
+    <label for="goal-c">朝のカード</label><select id="goal-c">${[10,20,30,40].map(n=>`<option value="${n}" ${GOAL.c===n?"selected":""}>${n}枚</option>`).join("")}</select></div>
+    <p class="small-muted" style="margin:6px 0 0">変えるとホームのミッションと「今日の問題」「今日のカード」の数が変わります。</p></div>
   <div class="panel"><div class="eyebrow">1日の流れ</div>
     <div class="flow">
-      <div><b>朝 10分</b><span class="mono">スマホだけ</span><br>暗記カード10枚。前の日に覚えた用語の復習が先に出ます。</div>
-      <div><b>昼 10分</b><span class="mono">スマホだけ</span><br>今日の5問。間違えた問題は翌日また出ます。</div>
+      <div><b>朝 10分</b><span class="mono">スマホだけ</span><br>暗記カード${GOAL.c}枚。前の日に覚えた用語の復習が先に出ます。</div>
+      <div><b>昼 10分</b><span class="mono">スマホだけ</span><br>今日の${GOAL.q}問。間違えた問題は翌日また出ます。</div>
       <div><b>夜 1〜2時間</b><span class="mono">紙とペン</span><br>下の週のタスクを進める。参考書 → 章の問題 → 科目Bのトレース → 復習。</div>
     </div>
     <p class="small-muted" style="margin:10px 0 0">「読む」「解く」などのボタンが付いたタスクは、章を読み終えたり問題を全部解いたりすると<b>自動でチェックが付きます</b>。紙で勉強するタスクだけ、終わったら自分でチェックしてください。週のタスクは夜の時間に1〜2個ずつ進めます。忙しい日は朝のカードだけでも続ければ、連続記録は途切れません。</p>
@@ -4286,12 +4311,12 @@ function renderHelp(){
         <li>用語を見て、意味を頭の中で言ってみる</li>
         <li>カードをタップして答え合わせ</li>
         <li>言えたら<b>「覚えた」</b>、言えなければ<b>「まだ」</b>（「まだ」の札は最後にもう一度出ます）</li>
-        <li>10枚終われば朝はクリア</li></ol></div>
+        <li>${GOAL.c}枚終われば朝はクリア</li></ol></div>
       <div><h4>昼<span>10分・スマホだけ</span></h4><ol>
-        <li>ホームの<b>「今日の5問」</b>を押す</li>
+        <li>ホームの<b>「今日の${GOAL.q}問」</b>を押す</li>
         <li>答えだと思う選択肢をタップ</li>
         <li>解説を読む。正解でも「なぜそうなるか」を言えるか確認</li>
-        <li><b>「次の問題」</b>で5問まで進めば昼はクリア</li></ol></div>
+        <li><b>「次の問題」</b>で${GOAL.q}問まで進めば昼はクリア</li></ol></div>
       <div><h4>夜<span>1〜2時間・紙とペン</span></h4><ol>
         <li>ホームの夜の枠で<b>1時間か2時間</b>を選ぶ</li>
         <li>①<b>「読む」</b>：参考書を図と一緒に読み、最後の<b>「読了にする」</b>を押す</li>
@@ -4470,11 +4495,27 @@ function startQuiz(cat){
   else { const C=Q.filter(q=>q.c===cat); pool=[...shuffle(C.filter(q=>!S.qs[q.id])),...shuffle(C.filter(q=>S.qs[q.id]&&!S.qs[q.id].last)),...shuffle(C.filter(q=>S.qs[q.id]&&S.qs[q.id].last))]; if(chById(cat)){ S.ch=cat; saveLocal(); } }
   quiz={cat,ids:pool.map(q=>q.id),i:0,picked:null,score:0,res:[]};
 }
-const catLabel=cat=>({pseudo:"科目B 擬似言語（5問）",today:"今日の5問",next:"明日の5問（先取り）",all:"全問（シャッフル）",random:"ランダム10問",wrong:"間違えた問題"}[cat]||chById(cat).title);
+// 表示する順番（元の番号の並び）。図付きの問題と、選択肢の文中で「ア」「イ」…を指している問題は並べ替えない
+const LETTER_REF=/(^|[^ァ-ヶー゠-ヿ])[アイウエ](は|が|の|を|も|と|や|、|，|。|（|\(|：|:|\s|$)/;
+function qOrder(q){
+  quiz.ord=quiz.ord||{};
+  if(!quiz.ord[q.id]){ const keep=q.fig||q.ch.some(t=>LETTER_REF.test(t));
+    quiz.ord[q.id]=keep?q.ch.map((_,k)=>k):shuffle(q.ch.map((_,k)=>k)); }
+  return quiz.ord[q.id];
+}
+// 解説の中の「アは…」「イは…」を、並べ替えた後の記号に書き換える
+function remapLetters(text,ord){
+  const L="アイウエ", P="はがのをもとや、，。（(：: "+String.fromCharCode(10);
+  let out=""; for(let i=0;i<text.length;i++){ const c=text[i], k=L.indexOf(c), prev=text[i-1]||"", next=text[i+1];
+    const kata=/[ァ-ヶー゠-ヿ]/.test(prev);
+    out+=(k>=0&&!kata&&(next===undefined||P.includes(next))&&ord.indexOf(k)>=0)?L[ord.indexOf(k)]:c; }
+  return out;
+}
+const catLabel=cat=>({pseudo:`科目B 擬似言語（${GOAL.q}問）`,today:`今日の${GOAL.q}問`,next:`明日の${GOAL.q}問（先取り）`,all:"全問（シャッフル）",random:"ランダム10問",wrong:"間違えた問題"}[cat]||chById(cat).title);
 function renderQuiz(){
   if(!quiz) startQuiz("today");
   const wrongN=Q.filter(q=>S.qs[q.id]&&!S.qs[q.id].last).length;
-  const chips=[["today","今日の5問"],["pseudo","科目B 擬似言語"],["random","ランダム10問"],["all","全問"],["wrong",`間違えた問題（${wrongN}）`]].concat(CHAPTERS.filter(c=>Q.some(q=>q.c===c.id)).map(c=>[c.id,c.title]));
+  const chips=[["today",`今日の${GOAL.q}問`],["pseudo","科目B 擬似言語"],["random","ランダム10問"],["all","全問"],["wrong",`間違えた問題（${wrongN}）`]].concat(CHAPTERS.filter(c=>Q.some(q=>q.c===c.id)).map(c=>[c.id,c.title]));
   const prog=quiz.ids.length<=20?`<div class="qprog">${quiz.ids.map((_,k)=>`<i class="${k<quiz.res.length?(quiz.res[k]?"ok":"ng"):k===quiz.i?"cur":""}"></i>`).join("")}</div>`:"";
   let card;
   if(!quiz.ids.length){
@@ -4487,7 +4528,7 @@ function renderQuiz(){
       <div class="eyebrow">${esc(catLabel(quiz.cat))} ／ 結果</div>
       <div class="big">${quiz.score} / ${quiz.ids.length}</div>
       <div>正答率 ${p}%　${p>=60?"合格ライン（60%）を超えています。":"合格ラインは60%。解説を読み直しましょう。"}</div>
-      <div class="small-muted">間違えた問題は明日の「今日の5問」にもう一度出ます。${d.c<GOAL.c?"次は暗記カードで今日のミッションを仕上げましょう。":""}</div>
+      <div class="small-muted">間違えた問題は明日の「今日の${GOAL.q}問」にもう一度出ます。${d.c<GOAL.c?"次は暗記カードで今日のミッションを仕上げましょう。":""}</div>
       <div class="next-cta">
         ${chById(quiz.cat)?`<button class="btn primary" data-open-d="${quiz.cat}">次へ：③ この章の用語を覚える →</button>`
           :(quiz.cat==="today"||quiz.cat==="next")?`<button class="btn primary" data-goto="home">ホームへ戻る（次の枠へ）</button>`
@@ -4496,39 +4537,46 @@ function renderQuiz(){
       </div>
     </div></div>`;
   } else {
-    const q=Q.find(x=>x.id===quiz.ids[quiz.i]), c=chById(q.c), answered=quiz.picked!==null, ok=quiz.picked===q.a;
+    const q=Q.find(x=>x.id===quiz.ids[quiz.i]), c=chById(q.c), answered=quiz.picked!==null, ok=quiz.picked===q.a, ord=qOrder(q), pending=!answered&&quiz.pend!=null;
     card=`<div class="qcard">${prog}
       <div class="qmeta"><span><i class="field-dot f-${c.field}"></i>${esc(c.title)}</span><span class="mono">問 ${quiz.i+1} / ${quiz.ids.length}</span></div>
       ${qHTML(q.q)}${q.code?`<pre class="qcode">${esc(q.code)}</pre>`:""}
       ${q.fig?FIG[q.fig]:""}
-      ${q.rd?`<details class="rd"><summary>プログラムの読み方（1行ずつ）</summary><div class="tw"><table class="t"><tr><th>書いてあること</th><th>意味</th></tr>${q.rd.map(([c,m])=>`<tr><td class="mono">${esc(c)}</td><td>${esc(m)}</td></tr>`).join("")}</table></div><p class="small-muted" style="margin:6px 0 0">紙に変数（箱）ごとの列を作り、1行ずつ値を書き込むと解きやすくなります。くわしくは参考書「アルゴリズムとデータ構造」の擬似言語の章へ。</p></details>`:""}
-      <div class="choices">${q.ch.map((t,k)=>{let cls="";if(answered){if(k===q.a)cls="correct";else if(k===quiz.picked)cls="wrong";}
-        return `<button class="choice ${cls}" data-pick="${k}" ${answered?"disabled":""}><span class="k">${"アイウエ"[k]}</span><span class="v">${esc(t)}</span></button>`;}).join("")}</div>
-      ${answered?`<div class="exp ${ok?"":"ng"}"><h4>${ok?"正解":"不正解　正解は "+"アイウエ"[q.a]}</h4>${esc(q.e)}${ANIMQ[q.id]?`<div style="margin-top:10px">${animBtn(ANIMQ[q.id],"アニメで解説を見る")}</div>`:""}${q.efig?FIG[q.efig]:""}</div>
+      ${q.rd&&!answered?`<p class="rd-tip">まず紙に変数の表を書いて、1行ずつ値を追ってみよう。<span class="small-muted">（「プログラムの読み方」は答えたあとに開けます）</span></p>`:""}
+      ${q.rd&&answered?`<details class="rd"><summary>プログラムの読み方（1行ずつ）</summary><div class="tw"><table class="t"><tr><th>書いてあること</th><th>意味</th></tr>${q.rd.map(([c,m])=>`<tr><td class="mono">${esc(c)}</td><td>${esc(m)}</td></tr>`).join("")}</table></div><p class="small-muted" style="margin:6px 0 0">紙に変数（箱）ごとの列を作り、1行ずつ値を書き込むと解きやすくなります。くわしくは参考書「アルゴリズムとデータ構造」の擬似言語の章へ。</p></details>`:""}
+      <div class="choices">${ord.map((k,d)=>{const t=q.ch[k];let cls="";if(answered){if(k===q.a)cls="correct";else if(k===quiz.picked)cls="wrong";}else if(pending&&k===quiz.pend)cls="picked";
+        return `<button class="choice ${cls}" data-pick="${k}" ${answered||pending?"disabled":""}><span class="k">${"アイウエ"[d]}</span><span class="v">${esc(t)}</span></button>`;}).join("")}</div>
+      ${pending?`<div class="conf"><div class="conf-q">答える前に：どのくらい自信がある？</div><div class="conf-btns">${CONF.map(([v,l])=>`<button class="btn ${v==="sure"?"primary":""}" data-conf="${v}">${l}</button>`).join("")}</div><button class="btn small conf-back" id="conf-back">選び直す</button></div>`:""}
+      ${answered?`<div class="exp ${ok?"":"ng"}"><h4>${ok?(quiz.conf==="sure"?"正解":"正解（"+CONFL[quiz.conf]+"）　あとでもう一度出します"):"不正解　正解は "+"アイウエ"[ord.indexOf(q.a)]}</h4>${esc(remapLetters(q.e,ord))}${ANIMQ[q.id]?`<div style="margin-top:10px">${animBtn(ANIMQ[q.id],"アニメで解説を見る")}</div>`:""}${q.efig?FIG[q.efig]:""}</div>
       <div class="qnav"><button class="btn small" data-open-ch="${q.c}" data-term="${esc((CARDS.find(k=>k.t===q.ch[q.a])||{}).t||"")}">参考書で確認</button><button class="btn primary" id="q-next">${quiz.i+1<quiz.ids.length?"次の問題":"結果を見る"}</button></div>`:""}
     </div>`;
   }
   $("#v-quiz").innerHTML=`
   <div><div class="eyebrow">科目A形式 ／ 四肢択一</div><h2 style="font-size:26px;margin-top:4px">問題演習</h2>
-  <p class="lead">「今日の5問」は、復習の日が来た問題 → まだ解いていない問題の順に出ます。間違えた問題は翌日、正解した問題は3日後・7日後…と間隔を空けて再登場します。</p></div>
+  <p class="lead">「今日の${GOAL.q}問」は、復習の日が来た問題 → まだ解いていない問題の順に出ます。間違えた問題は翌日、正解した問題は3日後・7日後…と間隔を空けて再登場します。</p></div>
   ${chById(quiz.cat)?flowBar(2):modeBar(catLabel(quiz.cat)+({today:"（昼の10分）",next:""}[quiz.cat]||""))}
   <div class="chips scroll" role="group" aria-label="出題範囲">${chips.map(([k,l])=>`<button class="chip" data-qcat="${k}" aria-pressed="${quiz.cat===k}">${esc(l)}</button>`).join("")}</div>
   <div class="quiz">${card}
     <aside class="side"><div class="panel"><h3>分野別の成績</h3>
-      ${CHAPTERS.filter(c=>Q.some(q=>q.c===c.id)).map(c=>{const s=catStats(c.id),p=pct(s.ok,s.tried);return `<div class="acc-row"><span><i class="field-dot f-${c.field}"></i>${esc(c.title)}</span><span class="mono small-muted">${s.tried?p+"%":"–"} · ${s.tried}/${s.n}</span><div class="bar"><i style="width:${p}%;background:${p>=60?"var(--ok)":"var(--ng)"};${s.tried?"":"opacity:0"}"></i></div></div>`;}).join("")}
+      ${CHAPTERS.filter(c=>Q.some(q=>q.c===c.id)).map(c=>{const s=catStats(c.id),p=pct(s.ok,s.tried);return `<div class="acc-row"><span><i class="field-dot f-${c.field}"></i>${esc(c.title)}</span><span class="mono small-muted">${s.tried?p+"%":"–"} · ${s.tried}/${s.n}${s.guess?`<span class="guessn"> · 勘で正解 ${s.guess}問</span>`:""}</span><div class="bar"><i style="width:${p}%;background:${p>=60?"var(--ok)":"var(--ng)"};${s.tried?"":"opacity:0"}"></i></div></div>`;}).join("")}
     </div></aside>
   </div>`;
   const root=$("#v-quiz");
   root.querySelectorAll("[data-qcat]").forEach(b=>b.addEventListener("click",()=>{startQuiz(b.dataset.qcat);renderQuiz();}));
-  root.querySelectorAll("[data-pick]").forEach(b=>b.addEventListener("click",()=>{
-    const q=Q.find(x=>x.id===quiz.ids[quiz.i]), k=+b.dataset.pick, ok=k===q.a;
-    quiz.picked=k; quiz.res.push(ok); if(ok) quiz.score++;
-    const s=S.qs[q.id]||{n:0,c:0,box:0}; s.n++; if(ok){s.c++; s.box=Math.min((s.box||0)+1,5);} else s.box=0;
-    s.last=ok; s.seen=today(); s.at=Date.now(); s.due=addDays(today(),ok?INT[s.box]:2); S.qs[q.id]=s; save(); act("q");
+  // 選択肢を押す → 自信を選ぶ → 正誤と解説。正解でも「迷った」「勘」なら覚えたことにせず、2日後にもう一度出す
+  root.querySelectorAll("[data-pick]").forEach(b=>b.addEventListener("click",()=>{ quiz.pend=+b.dataset.pick; renderQuiz(); const cf=$(".conf"); if(cf&&cf.scrollIntoView) cf.scrollIntoView({block:"nearest",behavior:"smooth"}); }));
+  const cb=$("#conf-back"); if(cb) cb.addEventListener("click",()=>{ quiz.pend=null; renderQuiz(); });
+  root.querySelectorAll("[data-conf]").forEach(b=>b.addEventListener("click",()=>{
+    const q=Q.find(x=>x.id===quiz.ids[quiz.i]), k=quiz.pend, ok=k===q.a, conf=b.dataset.conf, sure=ok&&conf==="sure";
+    quiz.picked=k; quiz.pend=null; quiz.conf=conf; quiz.res.push(ok); if(ok) quiz.score++;
+    const s=S.qs[q.id]||{n:0,c:0,box:0}; s.n++; if(ok) s.c++;
+    if(sure) s.box=Math.min((s.box||0)+1,5); else if(!ok) s.box=0;
+    if(ok&&conf==="guess") s.gc=(s.gc||0)+1;
+    s.conf=conf; s.last=ok; s.seen=today(); s.at=Date.now(); s.due=addDays(today(),sure?INT[s.box]:2); S.qs[q.id]=s; save(); act("q");
     renderQuiz();
     const e=$(".exp"); if(e&&e.scrollIntoView) e.scrollIntoView({block:"nearest",behavior:"smooth"});
   }));
-  const nx=$("#q-next"); if(nx) nx.addEventListener("click",()=>{quiz.i++;quiz.picked=null;renderQuiz();$(".qcard").scrollIntoView({block:"start"});});
+  const nx=$("#q-next"); if(nx) nx.addEventListener("click",()=>{quiz.i++;quiz.picked=null;quiz.pend=null;quiz.conf=null;renderQuiz();$(".qcard").scrollIntoView({block:"start"});});
   const rt=$("#q-retry"); if(rt) rt.addEventListener("click",()=>{startQuiz(quiz.cat);renderQuiz();});
   bindJumps(root); bindFlow(root);
 }
@@ -4552,7 +4600,7 @@ function startDeck(cat,onlyNew){
     if(onlyNew) pool=pool.filter(x=>!((S.cards[x.id]||{}).box>=1));
     pool=shuffle(pool);
   }
-  deck={cat,onlyNew,ids:pool.map(x=>x.id),i:0,flipped:false,again:{}};
+  deck={cat,onlyNew,ids:pool.map(x=>x.id),i:0,flipped:false,again:{},rev:cat==="today"?"alt":(deck&&deck.rev==="on"?"on":"off"),opts:{},rpick:{}};
 }
 function renderCards(){
   if(!deck) startDeck("today",false);
@@ -4568,6 +4616,19 @@ function renderCards(){
           :`<button class="btn primary" data-goto="home">ホームへ戻る（次の枠へ）</button>`}
         <button class="btn" id="f-again">もう1周</button>
       </div>`;
+  } else if(isRev()){
+    const x=CARDS.find(y=>y.id===deck.ids[deck.i]), c=chById(x.c), box=(S.cards[x.id]||{}).box||0, opts=revOpts(x), pk=deck.rpick[deck.i], done=pk!=null, ok=pk===x.id;
+    body=`<div class="flash rev">
+        <div class="eyebrow"><i class="field-dot f-${c.field}"></i>${esc(c.title)} ・ 逆向き：意味 → 用語</div>
+        <div class="def big">${esc(maskTerm(x.d,x.t))}</div>
+        <div class="hint">この説明に当てはまる用語はどれ？</div>
+        <div class="lv" title="覚え具合">${[1,2,3,4,5].map(k=>`<i class="${box>=k?"on":""}"></i>`).join("")}</div>
+      </div>
+      <div class="rev-opts">${opts.map((y,d)=>`<button class="choice ${done?(y.id===x.id?"correct":y.id===pk?"wrong":""):""}" data-rpick="${y.id}" ${done?"disabled":""}><span class="k">${"アイウエ"[d]}</span><span class="v">${esc(y.t)}</span></button>`).join("")}</div>
+      ${done?`<div class="exp ${ok?"":"ng"}"><h4>${ok?"正解":"不正解　正解は「"+esc(x.t)+"」"}</h4>${esc(x.t)}：${esc(x.d)}</div>
+      <div class="explain"><div class="ex-btns"><button class="btn" data-open-ch="${x.c}" data-term="${esc(x.t)}">参考書で確認</button>${BOOK_CH[x.c]?`<button class="btn" data-book="t|${esc(x.t)}" data-book-ch="${x.c}">本のページ</button>`:""}${vidLinkHTML(termVid(x.t),"動画")}</div></div>`:""}
+      <div class="small-muted mono">${deck.i+1} / ${deck.ids.length}</div>
+      <div class="flash-ctl">${done?`<button class="btn primary" id="r-next">次へ</button>`:""}</div>`;
   } else {
     const x=CARDS.find(y=>y.id===deck.ids[deck.i]), c=chById(x.c), box=(S.cards[x.id]||{}).box||0;
     body=`<button class="flash" id="flash" aria-label="カードをめくる">
@@ -4596,11 +4657,15 @@ function renderCards(){
     <button class="chip" data-dcat="all" aria-pressed="${deck.cat==="all"}">全分野</button>
     ${CHAPTERS.map(c=>`<button class="chip" data-dcat="${c.id}" aria-pressed="${deck.cat===c.id}">${esc(c.title)}</button>`).join("")}
   </div>
-  ${deck.cat!=="today"?`<div class="chips"><button class="chip" id="f-only" aria-pressed="${deck.onlyNew}">まだ覚えていない札だけ</button></div>`:""}
+  <div class="chips">${deck.cat!=="today"?`<button class="chip" id="f-only" aria-pressed="${deck.onlyNew}">まだ覚えていない札だけ</button><button class="chip" id="f-rev" aria-pressed="${deck.rev==="on"}">逆向き（意味→用語）</button>`:`<span class="small-muted">今日のカードは「用語→意味」と「意味→用語（4択）」が交互に出ます</span>`}</div>
   <div class="flash-wrap">${body}</div>`;
   const root=$("#v-cards");
   root.querySelectorAll("[data-dcat]").forEach(b=>b.addEventListener("click",()=>{startDeck(b.dataset.dcat,deck.onlyNew);renderCards();}));
   const fo=$("#f-only"); if(fo) fo.addEventListener("click",()=>{startDeck(deck.cat,!deck.onlyNew);renderCards();});
+  const fr=$("#f-rev"); if(fr) fr.addEventListener("click",()=>{ deck.rev=deck.rev==="on"?"off":"on"; renderCards(); });
+  // 逆向き：選んだ答えで正誤を決め、そのまま judge(ok) に渡す
+  root.querySelectorAll("[data-rpick]").forEach(b=>b.addEventListener("click",()=>{ deck.rpick[deck.i]=b.dataset.rpick; renderCards(); const e=$("#v-cards .exp"); if(e&&e.scrollIntoView) e.scrollIntoView({block:"nearest",behavior:"smooth"}); }));
+  const rn=$("#r-next"); if(rn) rn.addEventListener("click",()=>{ const x=CARDS.find(y=>y.id===deck.ids[deck.i]); judge(deck.rpick[deck.i]===x.id); });
   const f=$("#flash"); if(f) f.addEventListener("click",()=>{deck.flipped=!deck.flipped;renderCards();});
   const fx=$("#f-explain"); if(fx) fx.addEventListener("click",()=>explainCard(CARDS.find(y=>y.id===deck.ids[deck.i]),!!EXPL[deck.ids[deck.i]]));
   const y=$("#f-yes"); if(y) y.addEventListener("click",()=>judge(true));
@@ -4629,6 +4694,16 @@ async function explainCard(x,again){
   }
   if(current==="cards") renderCards();
 }
+// この札を逆向き（意味→用語の4択）で出すか。「今日のカード」は通常と逆向きを交互に
+const isRev=()=>deck&&(deck.rev==="on"||(deck.rev==="alt"&&deck.i%2===1));
+function revOpts(x){
+  if(!deck.opts[deck.i]){ const same=shuffle(CARDS.filter(y=>y.c===x.c&&y.t!==x.t&&y.d!==x.d)), other=shuffle(CARDS.filter(y=>y.c!==x.c&&y.t!==x.t));
+    const wrong=[...same,...other].filter((y,i,a)=>a.findIndex(z=>z.t===y.t)===i).slice(0,3);
+    deck.opts[deck.i]=shuffle([x,...wrong]).map(y=>y.id); }
+  return deck.opts[deck.i].map(id=>CARDS.find(y=>y.id===id));
+}
+// 意味の文の中に用語そのものが出てくるときは伏せる
+const maskTerm=(d,t)=>{ let s=d; [t,t.replace(/（.*?）|\(.*?\)/g,"")].filter(w=>w&&w.length>=2).forEach(w=>{ s=s.split(w).join("〇〇"); }); return s; };
 function judge(ok){
   const id=deck.ids[deck.i], s=S.cards[id]||{box:0};
   s.seen=today(); s.at=Date.now();
@@ -4636,10 +4711,12 @@ function judge(ok){
   else { s.box=0; s.due=today(); if(!deck.again[id]){ deck.again[id]=1; deck.ids.push(id); } }
   S.cards[id]=s; save(); act("c");
   deck.i++; deck.flipped=false; renderCards();
+  if(deck&&deck.rpick) delete deck.rpick[deck.i-1];
 }
 document.addEventListener("keydown",e=>{
   if(current!=="cards"||!deck||deck.i>=deck.ids.length||!deck.ids.length) return;
   if(e.target.closest&&e.target.closest("input,select,textarea,button")) return;
+  if(isRev()) return;
   if(e.key===" "){e.preventDefault();deck.flipped=!deck.flipped;renderCards();}
   else if(e.key==="ArrowRight") judge(true);
   else if(e.key==="ArrowLeft") judge(false);
