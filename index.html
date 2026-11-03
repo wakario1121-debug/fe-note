@@ -216,6 +216,64 @@ main{max-width:1120px;margin:0 auto;padding:20px 16px 64px}
 .pl-dots{display:flex;gap:5px;justify-content:center;flex-wrap:wrap}
 .pl-dots i{width:8px;height:8px;border-radius:50%;background:var(--sunk)}
 .pl-dots i.on{background:var(--accent)}
+.lzv{position:fixed;inset:0;z-index:65;background:var(--bg);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px)}
+.lz-top{display:flex;align-items:center;gap:10px;padding-block:8px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));border-bottom:1px solid var(--line);background:var(--surface)}
+.lz-top .t{flex:1;min-width:0;font-weight:700;font-size:15px}
+.lz-top .t small{display:block;font-weight:400;font-size:12px;color:var(--muted)}
+.lz-bar{height:6px;border-radius:99px;background:var(--line);overflow:hidden;width:80px;flex:none}
+.lz-bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .4s}
+.lz-chat{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-block:14px 20px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:9px;max-width:600px;width:100%;margin:0 auto;box-sizing:border-box}
+.lzr{display:flex;gap:8px;align-items:flex-end;animation:lzpop .26s ease-out}
+.lzr.me{justify-content:flex-end}
+@keyframes lzpop{from{transform:translateY(8px);opacity:.2}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.lzr{animation:none}}
+.lzav{flex:none;width:32px;height:32px;border-radius:50%;background:var(--accent);color:var(--surface);display:grid;place-items:center;font-weight:700;font-size:14px}
+.lzr.cont .lzav{visibility:hidden}
+.lzb{max-width:82%;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:18px 18px 18px 6px;padding:9px 14px;font-size:16px;line-height:1.7}
+.lzr.me .lzb{background:var(--accent);color:var(--surface);border-color:transparent;border-radius:18px 18px 6px 18px}
+.lzb b{font-weight:700}
+.lzb .hl{background:linear-gradient(transparent 55%,#FFE36B 55%);font-weight:700}
+.lzb.big{font-size:26px;font-weight:700;letter-spacing:.06em;font-family:var(--f-mono,monospace)}
+.lzb.fig{padding:10px;max-width:92%}
+.lzb.fig svg{display:block;width:100%;height:auto}
+.lzb.ai{border-color:var(--accent)}
+.lzb .who{display:block;font-size:11.5px;color:var(--accent);font-weight:700}
+.lztyping{display:flex;gap:4px;padding:12px 14px}
+.lztyping i{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:lzbl 1s infinite}
+.lztyping i:nth-child(2){animation-delay:.15s}.lztyping i:nth-child(3){animation-delay:.3s}
+@keyframes lzbl{50%{opacity:.25}}
+.lzq{background:var(--surface);border:2px solid var(--accent);border-radius:16px;padding:10px 14px;display:flex;flex-direction:column;gap:4px;max-width:92%}
+.lzq .tag{font-size:12px;color:var(--accent);font-weight:700;letter-spacing:.06em}
+.lzq .q{font-weight:700}
+.lz-foot{padding-block:10px calc(12px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));border-top:1px solid var(--line);background:var(--surface);display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;min-height:60px}
+.lzopt{text-align:center;font:inherit;font-weight:700;font-size:15.5px;border:2px solid var(--accent);background:var(--surface);color:var(--accent);border-radius:99px;padding:8px 16px;cursor:pointer;flex:1 1 40%;max-width:340px}
+.lzopt.next{background:var(--accent);color:var(--surface)}
+.lzopt.hintb{border-style:dashed;flex:0 0 auto}
+.lzopt:focus-visible,.lzitem:focus-visible{outline:3px solid #FFD400;outline-offset:2px}
+.lzhint{width:100%;text-align:center;font-size:12px;color:var(--muted)}
+.lzb .res{font-weight:700}.lzb .res.ok{color:#1E8A55}.lzb .res.ng{color:#C2452D}
+.lzsum{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 16px;display:flex;flex-direction:column;gap:6px;width:100%}
+.lzsum h3{margin:0;font-size:17px}
+.lzsum ol{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:3px}
+.lzscore{color:var(--accent);font-weight:700}
+.lzlinks{display:flex;flex-wrap:wrap;gap:6px}.lzlinks a{text-decoration:none}
+.lz-askbar{display:flex;justify-content:flex-end;padding-block:6px 0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.lzask{align-self:stretch;background:var(--sunk);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.lzask .lbl{font-size:13px;font-weight:700;color:var(--accent)}
+.lzask .chips{display:flex;flex-wrap:wrap;gap:6px}
+.lzask .chip{font:inherit;font-size:14px;border:1px solid var(--accent);background:var(--surface);color:var(--accent);border-radius:99px;padding:4px 12px;cursor:pointer}
+.lzaskf{display:flex;gap:6px}.lzaskf input{flex:1;min-width:0;font:inherit;font-size:16px;border:1px solid var(--line);border-radius:10px;padding:7px 10px;background:var(--surface);color:var(--ink)}
+.lzlink{align-self:flex-end;font:inherit;font-size:13px;border:0;background:none;color:var(--muted);text-decoration:underline;cursor:pointer}
+.lztbl table{border-collapse:collapse;font-size:14.5px;width:100%}.lztbl th,.lztbl td{border:1px solid var(--line);padding:5px 8px;text-align:center}.lztbl th{background:var(--sunk)}
+.lzb.fig .lztbl{min-width:240px}
+svg .lzs{font-size:13px;fill:var(--ink)} svg .lzb{font-size:14px;font-weight:700;fill:var(--ink)} svg .lzm{font-size:16px;font-family:var(--f-mono,monospace);font-weight:700;fill:var(--ink)}
+svg .lzac{fill:var(--accent)} svg .lzln{fill:none;stroke:var(--ink);stroke-width:1.6} svg .lzon{fill:var(--accent);opacity:.35} svg .lzoff{fill:var(--surface)}
+svg .lzbox{fill:var(--surface);stroke:var(--ink);stroke-width:1.6} svg .lzar{fill:none;stroke:var(--accent);stroke-width:2}
+.lzhome .lzlist{display:flex;flex-direction:column;gap:6px}
+.lzitem{font:inherit;display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;padding:10px 14px;cursor:pointer}
+.lzitem .t{font-weight:700}.lzitem .m{font-size:12.5px;color:var(--muted);white-space:nowrap}
+.lzitem.done{opacity:.75}
+.sec-links .lzbtn{border-color:var(--accent);color:var(--accent);font-weight:700}
 .bookv{position:fixed;inset:0;z-index:60;background:var(--bg);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 .bv-head{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface);border-bottom:1px solid var(--line)}
 .bv-head b{flex:1;min-width:0;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -567,6 +625,12 @@ pre.code{background:var(--code-bg);color:var(--code-ink);font-family:var(--f-mon
 <div class="bookv" id="vidv" role="dialog" aria-modal="true" aria-labelledby="vv-title" hidden>
   <div class="bv-head"><b id="vv-title">動画</b><button class="btn small" id="vv-close">閉じる</button></div>
   <div class="bv-body" id="vv-body"></div>
+</div>
+<div class="lzv" id="lzv" role="dialog" aria-modal="true" aria-labelledby="lz-title" hidden>
+  <div class="lz-top"><div class="t"><span id="lz-title">会話で学ぶ</span><small id="lz-sub"></small></div><div class="lz-bar" aria-label="進み具合"><i id="lz-bar"></i></div><button class="btn small" id="lz-close">とじる</button></div>
+  <div class="lz-chat" id="lz-chat" aria-live="polite"></div>
+  <div class="lz-askbar" id="lz-askbar" hidden><button class="btn small" id="lz-askbtn">？ わからない・きく</button></div>
+  <div class="lz-foot" id="lz-foot"></div>
 </div>
 <div class="player" id="player" role="dialog" aria-modal="true" aria-labelledby="pl-title" hidden>
   <div class="pl-in">
@@ -3534,6 +3598,7 @@ function mergeState(a,b){
   o.past=Object.assign({},older.past||{}); Object.entries(newer.past||{}).forEach(([k,v])=>{ if(!(o.past[k]&&o.past[k].deleted)) o.past[k]=v; });
   o.known={}; o.updatedAt=Math.max(a.updatedAt||0,b.updatedAt||0);
   o.secs=Object.assign({},older.secs,newer.secs); o.dr=Object.assign({},older.dr,newer.dr);
+  o.lessons=Object.assign({},older.lessons,newer.lessons);
   inferSeen(o);
   return o;
 }
@@ -3999,7 +4064,7 @@ function renderHome(){
     <div class="tbars">${last7.map(s=>{const g=getDay(s),a=(g.sec||0)+(s===t?pendingSec:0),b=g.tsec||0;return `<div class="tbar ${s===t?"now":""}" title="${s}：${fmtDur(a+b)}"><div class="col"><span class="goal" style="bottom:${tgt/mx*100}%"></span><i class="t" style="height:${b/mx*100}%"></i><i class="a" style="height:${a/mx*100}%"></i></div><span>${WD[new Date(s+"T00:00:00").getDay()]}</span><span class="mono">${Math.round((a+b)/60)}分</span></div>`;}).join("")}</div>
     <div class="tlegend"><span><i style="background:var(--accent)"></i>アプリで勉強（自動で計測）</span><span><i style="background:var(--strat)"></i>タイマー（紙・IPA問題など）</span><span>点線＝1日の目安</span></div>
   </div>`;
-  $("#v-home").innerHTML=`${banner}${examSetup}
+  $("#v-home").innerHTML=`${banner}${examSetup}${(()=>{ try{ return lessonHomeHTML(); }catch(e){ return ""; } })()}
   <div class="today">
     <div class="panel mission">
       <div class="mission-head">
@@ -5371,9 +5436,9 @@ function pageSec(k){
 // 参考書の各節の見出しの下に「本のページ」「動画の場面」を出す
 function addSecLinks(c){
   const hs=[...document.querySelectorAll("#v-book .ch-body h3")];
-  hs.forEach((h,i)=>{ const [bk,vs]=secLink(c.id,i); if(!bk&&vs==null) return;
+  hs.forEach((h,i)=>{ const [bk,vs]=secLink(c.id,i), lz=typeof lessonFor==="function"?lessonFor(c.id,i):null; if(!bk&&vs==null&&!lz) return;
     const d=document.createElement("div"); d.className="sec-links";
-    d.innerHTML=`${bk?`<button class="btn small" data-book="k|${bk}">本 ${pageLabel(bk)}</button>`:""}${vidLinkHTML(vs)}`;
+    d.innerHTML=`${lz?`<button class="btn small lzbtn" data-lesson="${lz.id}">💬 会話で学ぶ${(S.lessons||{})[lz.id]?" ✓":""}</button>`:""}${bk?`<button class="btn small" data-book="k|${bk}">本 ${pageLabel(bk)}</button>`:""}${vidLinkHTML(vs)}`;
     h.after(d); });
 }
 function bookFootHTML(p){
@@ -5475,6 +5540,224 @@ document.addEventListener("keydown",e=>{ if(!$("#vidv").hidden&&e.key==="Escape"
 // 12時間動画へのリンクは、アプリの中のプレーヤーで開く（取り込んでいなければ、取り込むかYouTubeかを選べる）
 document.addEventListener("click",e=>{ const a=e.target.closest&&e.target.closest("a[href*='youtube.com/watch?v="+VID12+"']"); if(!a||a.dataset.ytDirect) return;
   e.preventDefault(); const m=a.href.match(/[?&]t=(\d+)s/); openVid(m?+m[1]:0); },true);
+
+
+/* ================= 会話で学ぶ（会話の授業） ================= */
+// 図（会話用の小さな図）
+const LZF={
+venn:(()=>{ const one=(x,lab,mode)=>{ const id="lzc"+lab; return `<g transform="translate(${x},0)">
+  <defs><clipPath id="${id}a"><circle cx="38" cy="42" r="26"/></clipPath></defs>
+  ${mode==="or"?`<circle cx="38" cy="42" r="26" class="lzon"/><circle cx="62" cy="42" r="26" class="lzon"/>`:""}
+  ${mode==="xor"?`<path fill-rule="evenodd" class="lzon" d="M12 42a26 26 0 1 0 52 0a26 26 0 1 0 -52 0Z M36 42a26 26 0 1 0 52 0a26 26 0 1 0 -52 0Z"/>`:""}
+  ${mode==="and"?`<circle cx="62" cy="42" r="26" class="lzon" clip-path="url(#${id}a)"/>`:""}
+  <circle cx="38" cy="42" r="26" class="lzln"/><circle cx="62" cy="42" r="26" class="lzln"/>
+  <text x="6" y="22" class="lzs">A</text><text x="86" y="22" class="lzs">B</text>
+  <text x="50" y="86" text-anchor="middle" class="lzb">${lab}</text></g>`; };
+  return `<svg viewBox="0 0 300 94" role="img" aria-label="AND・OR・XORのベン図">${one(0,"AND","and")}${one(100,"OR","or")}${one(200,"XOR","xor")}</svg>`; })(),
+bits:`<svg viewBox="0 0 220 112" role="img" aria-label="1100 AND 1010 の計算">
+  <text x="10" y="24" class="lzs">　</text>
+  ${[["1100",28],["1010",54]].map(([b,y])=>[...b].map((c,i)=>`<text x="${90+i*26}" y="${y}" text-anchor="middle" class="lzm">${c}</text>`).join("")).join("")}
+  <text x="40" y="54" class="lzb">AND</text><line x1="70" y1="64" x2="190" y2="64" class="lzln"/>
+  ${[..."1000"].map((c,i)=>`<text x="${90+i*26}" y="86" text-anchor="middle" class="lzm lzac">${c}</text>`).join("")}
+  <text x="110" y="106" text-anchor="middle" class="lzs">1けたずつ「両方1なら1」</text></svg>`,
+gate:`<svg viewBox="0 0 300 96" role="img" aria-label="NAND回路をベン図でたどる">
+  <text x="6" y="30" class="lzs">A</text><text x="6" y="66" class="lzs">B</text>
+  <line x1="20" y1="26" x2="54" y2="26" class="lzln"/><line x1="20" y1="62" x2="54" y2="62" class="lzln"/>
+  <path d="M54 14h22a30 30 0 0 1 0 60h-22z" class="lzbox"/><text x="72" y="49" text-anchor="middle" class="lzb">AND</text>
+  <line x1="106" y1="44" x2="130" y2="44" class="lzln"/>
+  <path d="M130 26l30 18l-30 18z" class="lzbox"/><circle cx="165" cy="44" r="5" class="lzbox"/><text x="138" y="84" class="lzs">NOT</text>
+  <line x1="170" y1="44" x2="196" y2="44" class="lzln"/>
+  <rect x="198" y="8" width="96" height="72" rx="6" class="lzon"/>
+  <defs><clipPath id="lzg"><circle cx="234" cy="44" r="22"/></clipPath></defs>
+  <circle cx="258" cy="44" r="22" class="lzoff" clip-path="url(#lzg)"/>
+  <circle cx="234" cy="44" r="22" class="lzln"/><circle cx="258" cy="44" r="22" class="lzln"/>
+  <text x="246" y="94" text-anchor="middle" class="lzs">重なり以外が1（NAND）</text></svg>`,
+half:`<svg viewBox="0 0 260 158" role="img" aria-label="1けたの2進数の足し算">
+  <text x="20" y="20" class="lzs">X＋Y</text><text x="130" y="20" class="lzs">くり上がり C</text><text x="214" y="20" class="lzs">和 S</text>
+  ${[["0＋0","0","0"],["0＋1","0","1"],["1＋0","0","1"],["1＋1","1","0"]].map(([a,c,s],k)=>`<text x="20" y="${46+k*24}" class="lzm">${a}</text><text x="160" y="${46+k*24}" text-anchor="middle" class="lzm ${k===3?"lzac":""}">${c}</text><text x="230" y="${46+k*24}" text-anchor="middle" class="lzm">${s}</text>`).join("")}
+  <line x1="10" y1="128" x2="250" y2="128" class="lzln"/><text x="160" y="150" text-anchor="middle" class="lzb lzac">＝AND</text><text x="230" y="150" text-anchor="middle" class="lzb lzac">＝XOR</text></svg>`,
+stack:(()=>{ const st=[["2",["2"]],["3",["2","3"]],["＋",["5"]],["4",["5","4"]],["×",["20"]]];
+  return `<svg viewBox="0 0 300 130" role="img" aria-label="2 3 ＋ 4 × をスタックで計算">${st.map(([t,s],k)=>{ const x=10+k*58;
+    return `<text x="${x+24}" y="18" text-anchor="middle" class="lzb ${/[＋×]/.test(t)?"lzac":""}">${t}</text>`+s.map((v,j)=>`<rect x="${x}" y="${100-j*26}" width="48" height="24" rx="4" class="${j===s.length-1?"lzon":"lzbox"}"/><text x="${x+24}" y="${117-j*26}" text-anchor="middle" class="lzm">${v}</text>`).join("")+`<line x1="${x-2}" y1="126" x2="${x+50}" y2="126" class="lzln"/>`; }).join("")}</svg>`; })(),
+parity:`<svg viewBox="0 0 300 120" role="img" aria-label="1の数が偶数か奇数かを覚えるオートマトン">
+  <text x="4" y="64" class="lzs">スタート→</text>
+  <circle cx="110" cy="60" r="30" class="lzbox"/><circle cx="110" cy="60" r="24" class="lzln"/><text x="110" y="66" text-anchor="middle" class="lzb">偶</text>
+  <circle cx="240" cy="60" r="30" class="lzbox"/><text x="240" y="66" text-anchor="middle" class="lzb">奇</text>
+  <path d="M138 48 Q175 26 212 48" class="lzar"/><text x="175" y="30" text-anchor="middle" class="lzm lzac">1</text>
+  <path d="M212 72 Q175 94 138 72" class="lzar"/><text x="175" y="104" text-anchor="middle" class="lzm lzac">1</text>
+  <path d="M96 34 q-14 -30 14 -30 q24 0 12 30" class="lzar"/><text x="110" y="16" text-anchor="middle" class="lzm">0</text>
+  <path d="M226 34 q-14 -30 14 -30 q24 0 12 30" class="lzar"/><text x="240" y="16" text-anchor="middle" class="lzm">0</text></svg>`,
+table3:`<div class="lztbl"><table><tr><th>今の状態＼入力</th><th>0</th><th>1</th></tr><tr><td>A（スタート）</td><td>A</td><td>B</td></tr><tr><td>B</td><td>C</td><td>A</td></tr><tr><td>C（受理）</td><td>B</td><td>C</td></tr></table></div>`
+};
+const LESSONS=[
+ {id:"kiso2-0",ch:"kiso2",sec:0,title:"集合と論理演算",min:3,steps:[
+  {s:"今日のテーマは「論理演算」。0と1だけを使う計算だよ"},
+  {s:"「AかつB」「AまたはB」みたいな言い方、聞いたことある？"},
+  {ask:["ある","ない"],re:["それをコンピュータの言葉にしたのが論理演算！","大丈夫。日本語の「かつ」「または」のことだよ"]},
+  {s:"2つの円の重なりで考えるとわかりやすい。これを <b>ベン図</b> っていう"},
+  {fig:"venn"},
+  {s:"<b>AND</b>（かつ）は、両方が1のときだけ1。重なったところだけ"},
+  {s:"<b>OR</b>（または）は、どちらかが1なら1。全部ぬる"},
+  {s:"<b>XOR</b> は、2つが<span class=\"hl\">ちがうとき</span>だけ1。重なりだけ白くぬける"},
+  {quiz:"1 XOR 1 はいくつ？",o:["0","1","2","11"],a:0,ok:"同じだから0。XORは「ちがうときだけ1」",ng:"1と1は同じだから0。XORは「ちがうときだけ1」"},
+  {s:"NOT は0と1をひっくり返すだけ。NAND は AND の答えを全部ひっくり返したもの"},
+  {s:"ビット列でもやってみよう。上下に並べて、1けたずつ計算するだけ"},
+  {fig:"bits"},
+  {quiz:"1100 OR 1010 は？",o:["1000","1110","0110","1111"],a:1,ok:"どちらかが1なら1。左から 1,1,1,0 で 1110",ng:"OR は「どちらかが1なら1」。左から 1,1,1,0 で 1110"},
+  {s:"このしくみで、ビット列の一部だけを取り出せる。<b>マスク</b> っていうよ"},
+  {s:"取り出したいところを1にして AND する。サブネットマスクもこのしくみ！"},
+  {quiz:"8ビットのデータ x の下位4ビットだけを残し、上位4ビットを0にしたい。x と AND をとるビット列はどれ？",o:["00001111","11110000","11111111","00000000"],a:0,tag:"試験と同じ形",hint:"ヒント：残したいところを1にする",ok:"残したい下位4ビットを1に。AND は0のところを必ず0にする",ng:"残したいところを1にするから、下位4ビットが1の 00001111"},
+  {s:"最後に集合の数。「AまたはB」の人数は、Aの人数＋Bの人数−両方の人数"},
+  {quiz:"100人中、Aが好き60人、Bが好き50人、両方好き30人。どちらかが好きな人は？",o:["80人","110人","90人","30人"],a:0,ok:"60＋50−30＝80人。重なりを二重に数えないよう引く",ng:"60＋50だと両方好きな30人を2回数えてしまう。60＋50−30＝80人"},
+  {sum:["AND＝両方1、OR＝どちらか1、XOR＝ちがうとき1","ビット列は1けたずつ。AND で一部を取り出す（マスク）","AまたはBの数＝A＋B−両方"]}]},
+ {id:"kiso2-1",ch:"kiso2",sec:1,title:"論理回路",min:3,steps:[
+  {s:"今日は <b>論理回路</b>。さっきの論理演算を、電気の回路にしたものだよ"},
+  {s:"CPUの中は小さな回路の山。足し算もこれでやってるんだ"},
+  {s:"回路の記号の形は、試験の問題文に説明が書いてある"},
+  {ask:["覚えなくていいの？","でも覚えたい"],re:["そう。大事なのは記号より「解き方」のほう","ANDは「D」の形、ORは「矢じり」の形。NOTは三角に丸"]},
+  {s:"解き方はこれだけ。<span class=\"hl\">入力に近いゲートから1つずつ</span>、出力をベン図で描いていく"},
+  {fig:"gate"},
+  {s:"AND で重なりだけ → NOT でひっくり返す → 重なり以外が全部1。これが <b>NAND</b>"},
+  {quiz:"入力 A＝1、B＝0 のとき、A AND B を NOT した出力は？",o:["0","1"],a:1,ok:"A AND B は 0。それを NOT して 1",ng:"A AND B は（両方1ではないので）0。NOT でひっくり返して 1"},
+  {s:"次は回路で足し算をする話。<b>半加算器</b> っていう"},
+  {s:"1けたの2進数どうしを足すと、答えは「くり上がり」と「和」の2つになる"},
+  {fig:"half"},
+  {s:"よく見ると…くり上がりは <b>AND</b>、和は <b>XOR</b> と同じ形！"},
+  {quiz:"半加算器で、くり上がり（C）を作る論理演算はどれ？",o:["AND","OR","XOR","NOT"],a:0,ok:"1＋1 のときだけくり上がる。両方1のときだけ1、つまり AND",ng:"くり上がるのは 1＋1 のときだけ。両方1のときだけ1になるのは AND"},
+  {s:"下の桁からのくり上がりも足せるのが <b>全加算器</b>。半加算器2つと OR で作れるよ"},
+  {quiz:"半加算器に X＝1、Y＝1 を入れたときの出力（C, S）は？",o:["(0, 0)","(0, 1)","(1, 0)","(1, 1)"],a:2,tag:"試験と同じ形",ok:"1＋1＝2 は2進数で 10。くり上がり1、和0",ng:"1＋1＝2 は2進数で 10。くり上がり C＝1、和 S＝0"},
+  {sum:["回路は入力に近いゲートから1つずつベン図で追う","AND→NOT が NAND","半加算器：くり上がり＝AND、和＝XOR"]}]},
+ {id:"kiso2-2",ch:"kiso2",sec:2,title:"逆ポーランド記法",min:3,steps:[
+  {s:"「1 ＋ 2」みたいなふつうの書き方を <b>中置記法</b> っていう"},
+  {s:"＋や×を後ろに置く書き方もある。それが <b>逆ポーランド記法</b>"},
+  {big:"1 2 ＋"},
+  {s:"これで「1と2を足す」。かっこがいらないのがいいところ"},
+  {ask:["なんで後ろ？","ふーん"],re:["コンピュータは「数を積んで、記号が来たら計算」するのが得意だから","実はコンピュータにとっては、こっちのほうが計算しやすいんだ"]},
+  {s:"変換のコツは、<span class=\"hl\">先に計算するところから</span>記号を後ろに回すこと"},
+  {s:"(1 ＋ 2) × 3 なら、まずかっこの中 → 1 2 ＋。それに3を掛けて → 1 2 ＋ 3 ×"},
+  {quiz:"(A − B) × C を逆ポーランド記法にすると？",o:["A B − C ×","A B C − ×","A − B C ×","× − A B C"],a:0,ok:"かっこの中が先で A B −。それに C を掛けて A B − C ×",ng:"かっこの中を先に A B −。それに C を掛けて A B − C ×"},
+  {s:"読むときは積み木（<b>スタック</b>）で考える。数は積む、記号が来たら上の2つで計算"},
+  {fig:"stack"},
+  {quiz:"2 3 ＋ 4 × を計算すると？",o:["14","20","24","9"],a:1,ok:"2＋3＝5、5×4＝20",ng:"まず 2 3 ＋ で5。次に 5 4 × で20"},
+  {quiz:"A ＋ B × C を逆ポーランド記法にしたものは？",o:["A B C × ＋","A B ＋ C ×","A B × C ＋","＋ A × B C"],a:0,tag:"試験と同じ形",hint:"ヒント：かっこがなくても、掛け算は足し算より先",ok:"掛け算が先なので B C × を作り、それを A に足す",ng:"掛け算が先。B C × を作ってから A に足すので A B C × ＋"},
+  {sum:["逆ポーランド記法は記号を後ろに置く（かっこ不要）","先に計算するところから記号を後ろへ","読むときはスタック：数は積む、記号で上の2つを計算"]}]},
+ {id:"kiso2-3",ch:"kiso2",sec:3,title:"オートマトン",min:3,steps:[
+  {s:"<b>オートマトン</b> は、機械の動きを「状態」の移り変わりで表すモデルだよ"},
+  {s:"たとえば自動販売機。「今いくら入っているか」が状態"},
+  {s:"入力（お金）で状態が移っていって、最後に「受け付けた」かどうかが決まる"},
+  {fig:"parity"},
+  {s:"これは「1が何回来たか」の偶数・奇数を覚えるオートマトン。0なら同じ状態のまま、1なら反対へ"},
+  {s:"二重丸の「偶」が <b>受理状態</b>。最後にここにいれば受け付ける"},
+  {quiz:"スタートは「偶」。入力 101 のあと、どの状態？",o:["偶","奇"],a:0,ok:"1で奇、0でそのまま奇、1で偶",ng:"1で奇へ、0はそのまま奇、1で偶にもどる"},
+  {s:"解き方は、指で今の状態をおさえて、入力を1文字ずつたどるだけ"},
+  {quiz:"入力 1101 は受理される？",o:["受理される","受理されない"],a:1,ok:"偶→奇→偶→偶→奇。最後が奇なので受理されない",ng:"偶→奇→偶→偶→奇 で最後が奇。受理状態（偶）ではない"},
+  {s:"試験では表（<b>状態遷移表</b>）で出ることも多い。行が今の状態、列が入力"},
+  {fig:"table3"},
+  {quiz:"上の表で、A からスタートして入力 1011 を読んだあとの状態は？",o:["A","B","C"],a:2,tag:"試験と同じ形",hint:"ヒント：A で 1 → B。次は B の行の 0 を見る",ok:"A→(1)B→(0)C→(1)C→(1)C。最後は受理状態の C",ng:"A→(1)B→(0)C→(1)C→(1)C で、最後は C"},
+  {sum:["オートマトン＝入力で状態が移り変わるモデル","最後に受理状態（二重丸）にいれば受理","指で状態をおさえ、入力を1文字ずつたどる"]}]}
+];
+const lessonFor=(ch,i)=>LESSONS.find(l=>l.ch===ch&&l.sec===i);
+
+let LZ=null;
+function openLesson(id){
+  const L=LESSONS.find(x=>x.id===id); if(!L) return;
+  LZ={L,i:0,score:0,total:L.steps.filter(x=>x.quiz).length,last:null,busy:false};
+  $("#lz-title").textContent=L.title; $("#lz-sub").textContent=`${chById(L.ch).title}・${L.min}分`;
+  $("#lz-chat").innerHTML=""; $("#lzv").hidden=false; document.body.style.overflow="hidden";
+  $("#lz-askbar").hidden=!sampleFn||sampleOff;
+  lzStep();
+}
+function closeLesson(){ $("#lzv").hidden=true; document.body.style.overflow=""; LZ=null; if(current==="home") renderHome(); else if(current==="book") renderBook(); }
+const lzReduce=()=>matchMedia("(prefers-reduced-motion: reduce)").matches;
+function lzScroll(){ const c=$("#lz-chat"); c.scrollTo({top:c.scrollHeight,behavior:lzReduce()?"auto":"smooth"}); }
+function lzRow(html,who="t",cls=""){ const c=$("#lz-chat"), r=document.createElement("div");
+  r.className="lzr "+(who==="me"?"me":"")+(who==="t"&&LZ.last==="t"?" cont":"");
+  r.innerHTML=(who==="t"?`<div class="lzav" aria-hidden="true">先</div>`:"")+`<div class="lzb ${cls}">${html}</div>`;
+  c.appendChild(r); LZ.last=who; lzScroll(); return r; }
+function lzType(cb){ const c=$("#lz-chat"), r=document.createElement("div"); r.className="lzr"+(LZ.last==="t"?" cont":"");
+  r.innerHTML=`<div class="lzav" aria-hidden="true">先</div><div class="lzb lztyping"><i></i><i></i><i></i></div>`; c.appendChild(r); lzScroll();
+  setTimeout(()=>{ r.remove(); cb(); },lzReduce()?0:380); }
+function lzFoot(html){ const f=$("#lz-foot"); f.innerHTML=html; const b=f.querySelector("button"); if(b) b.focus({preventScroll:true}); }
+function lzNext(label="つぎへ"){ lzFoot(`<button class="lzopt next" id="lz-nx">${label}</button><div class="lzhint">画面のどこをタップしても進みます</div>`); $("#lz-nx").onclick=lzStep; }
+function lzProg(){ $("#lz-bar").style.width=Math.round(LZ.i/LZ.L.steps.length*100)+"%"; }
+function lzAuto(){ const n=LZ.L.steps[LZ.i]; if(!n) return; if(n.fig){ lzStep(); return; } lzNext(); }
+function lzStep(){
+  if(!LZ||LZ.i>=LZ.L.steps.length) return; const x=LZ.L.steps[LZ.i++]; lzProg();
+  if(x.s||x.big){ LZ.busy=true; lzFoot(""); lzType(()=>{ lzRow(x.s||x.big,"t",x.big?"big":""); LZ.busy=false; lzAuto(); }); }
+  else if(x.fig){ lzRow(LZF[x.fig]||"","t","fig"); lzAuto(); }
+  else if(x.ask){ lzFoot(x.ask.map((t,k)=>`<button class="lzopt" data-k="${k}">${t}</button>`).join(""));
+    $("#lz-foot").querySelectorAll("button").forEach(b=>b.onclick=()=>{ const k=+b.dataset.k; lzRow(x.ask[k],"me"); lzFoot(""); LZ.busy=true; lzType(()=>{ lzRow(x.re[k]); LZ.busy=false; lzAuto(); }); }); }
+  else if(x.quiz){ const box=document.createElement("div"); box.className="lzq"; box.innerHTML=`<span class="tag">${x.tag||"問題"}</span><div class="q">${x.quiz}</div>`;
+    const r=document.createElement("div"); r.className="lzr"+(LZ.last==="t"?" cont":""); r.innerHTML=`<div class="lzav" aria-hidden="true">先</div>`; r.appendChild(box); $("#lz-chat").appendChild(r); LZ.last="t"; lzScroll();
+    let hinted=false;
+    const draw=()=>{ lzFoot(x.o.map((t,k)=>`<button class="lzopt" data-k="${k}">${t}</button>`).join("")+(x.hint&&!hinted?`<button class="lzopt hintb" id="lz-hint">ヒント</button>`:""));
+      const hb=$("#lz-hint"); if(hb) hb.onclick=()=>{ hinted=true; lzRow(x.hint); draw(); };
+      $("#lz-foot").querySelectorAll("button[data-k]").forEach(b=>b.onclick=()=>{ const k=+b.dataset.k, ok=k===x.a; if(ok) LZ.score++;
+        lzRow(x.o[k],"me"); lzFoot(""); LZ.busy=true;
+        lzType(()=>{ lzRow(`<span class="res ${ok?"ok":"ng"}">${ok?"◎ 正解":"△ ちがうよ"}</span><br>${ok?x.ok:x.ng}`); LZ.busy=false; lzNext(); }); }); };
+    draw(); }
+  else if(x.sum){ lzFoot(""); lzFinish(x.sum); }
+}
+function lzFinish(points){
+  const L=LZ.L, k=L.ch+":"+L.sec, title=secTitles(L.ch)[L.sec]||L.title, bk=secLink(L.ch,L.sec);
+  // 会話を最後までやったら、その節は「読んだ」ことにする
+  S.lessons=S.lessons||{}; S.lessons[L.id]={at:Date.now(),score:LZ.score,total:LZ.total,day:today()};
+  const wasDone=secDone(k); markSecs([{k,ch:L.ch,i:L.sec}]);
+  const dp=dayPlan(); if(!wasDone){ if(dp.secs.length&&dp.secs.every(x=>secDone(x.k))&&!(getDay(today()).n||{}).read) markNight("read"); else act("r"); }
+  save();
+  const next=LESSONS.find(x=>x.id!==L.id&&!(S.lessons||{})[x.id]&&dp.secs.some(s=>s.ch===x.ch&&s.i===x.sec))||LESSONS.find(x=>x.id!==L.id&&!(S.lessons||{})[x.id]);
+  const s=document.createElement("div"); s.className="lzsum";
+  s.innerHTML=`<h3>今日のまとめ</h3><ol>${points.map(p=>`<li>${p}</li>`).join("")}</ol>
+    <div>問題：<span class="mono lzscore">${LZ.score} / ${LZ.total}</span>　${LZ.score===LZ.total?"全問正解！":"もう一回やると覚えられるよ"}</div>
+    <div class="small-muted">参考書「${esc(title)}」を読んだことにしました。</div>
+    <div class="lzlinks"><button class="btn small" data-lz-sec="${L.ch}:${L.sec}">参考書で読む</button>${bk[0]?`<button class="btn small" data-book="k|${bk[0]}">本 ${pageLabel(bk[0])}</button>`:""}${vidLinkHTML(bk[1])}</div>`;
+  const r=document.createElement("div"); r.className="lzr"; r.appendChild(s); $("#lz-chat").appendChild(r); lzScroll(); $("#lz-bar").style.width="100%";
+  lzFoot(`${next?`<button class="lzopt next" id="lz-next">次の授業：${esc(next.title)}</button>`:""}<button class="lzopt" id="lz-again">もう一回</button><button class="lzopt" id="lz-close2">おわる</button>`);
+  if(next) $("#lz-next").onclick=()=>openLesson(next.id);
+  $("#lz-again").onclick=()=>openLesson(L.id); $("#lz-close2").onclick=closeLesson;
+  s.querySelector("[data-lz-sec]").onclick=()=>{ closeLesson(); openSection(L.ch,L.sec); };
+}
+$("#lz-close").addEventListener("click",closeLesson);
+$("#lz-chat").addEventListener("click",e=>{ if(e.target.closest("button,a,input,form")) return; if(LZ&&!LZ.busy&&$("#lz-nx")) lzStep(); });
+document.addEventListener("keydown",e=>{ if(!$("#lzv").hidden&&e.key==="Escape") closeLesson(); });
+document.addEventListener("click",e=>{ const b=e.target.closest&&e.target.closest("[data-lesson]"); if(!b) return; e.preventDefault(); openLesson(b.dataset.lesson); });
+
+/* わからないときに先生にきく（Claudeのアプリで開いたときだけ） */
+$("#lz-askbtn").addEventListener("click",()=>{
+  if(!LZ||$("#lz-askbox")){ const ip=$("#lz-askq"); if(ip) ip.focus(); return; }
+  const box=document.createElement("div"); box.className="lzask"; box.id="lz-askbox";
+  box.innerHTML=`<span class="lbl">先生にきく</span><div class="chips">${["もっとかんたんに","たとえば？","なんでそうなるの？","さっきの問題がわからない"].map(t=>`<button class="chip">${t}</button>`).join("")}</div>
+    <form class="lzaskf" id="lz-askf"><input id="lz-askq" placeholder="わからないことを書く" autocomplete="off" aria-label="質問"><button class="btn small primary">送る</button></form>
+    <button class="lzlink" id="lz-askx">とじる</button>`;
+  $("#lz-chat").appendChild(box); LZ.last=null; lzScroll();
+  box.querySelectorAll(".chip").forEach(c=>c.onclick=()=>lzAsk(c.textContent));
+  $("#lz-askf").addEventListener("submit",e=>{ e.preventDefault(); const v=$("#lz-askq").value.trim(); if(v) lzAsk(v); });
+  $("#lz-askx").onclick=()=>box.remove();
+});
+async function lzAsk(q){
+  if(!LZ||LZ.asking||!sampleFn) return; LZ.asking=true; LZ.busy=true;
+  const bx=$("#lz-askbox"); if(bx) bx.remove();
+  const ctx=[...$("#lz-chat").querySelectorAll(".lzr")].slice(-14).map(r=>{ const b=r.querySelector(".lzb,.lzq,.lzsum"); if(!b||b.classList.contains("lztyping")) return ""; return (r.classList.contains("me")?"生徒":"先生")+"："+b.innerText.replace(/\s+/g," ").trim(); }).filter(Boolean).join("\n");
+  lzRow(esc(q),"me");
+  const r=lzRow(`<span class="who">しつもんへの答え</span><span class="txt">考え中…</span>`,"t","ai"), out=r.querySelector(".txt");
+  const prompt=`あなたは基本情報技術者試験を勉強している人の、やさしい先生です。今はLINEのようなチャットで「${LZ.L.title}」を教えています。\nここまでの会話：\n${ctx}\n\n生徒の質問：「${q}」\n\n答え方：日本語で、友だちに話すような口調。2〜4文、1文は短く。箇条書きや見出しは使わない。身近なたとえを使ってよい。問題の答えを聞かれたら考え方を1ステップずつ。答えの文だけを書く。`;
+  try{ const res=await sampleFn(prompt,{modelTier:"quick",cache:false,onText:({text})=>{ out.textContent=text; lzScroll(); }}); out.textContent=res.text; }
+  catch(e){ const c=e&&e.code; if(c==="not_granted"){ out.textContent="先生にきく機能が許可されなかったので、今回は使えません。"; $("#lz-askbar").hidden=true; } else if(c==="rate_limited") out.textContent="質問が続いたので、少し時間をおいてからきいてね。"; else out.textContent=(e&&e.text)||"うまく答えられませんでした。もう一度きいてみてね。"; }
+  if(LZ){ LZ.asking=false; LZ.busy=false; } lzScroll();
+}
+
+/* ホームに出す「会話で学ぶ」：今日（または明日）の範囲にある授業 */
+function lessonHomeHTML(){
+  if(!LESSONS.length) return "";
+  const dp=dayPlan(), done=id=>(S.lessons||{})[id];
+  let list=LESSONS.filter(l=>dp.secs.some(s=>s.ch===l.ch&&s.i===l.sec)), label="今日の範囲を会話で";
+  if(!list.length||list.every(l=>done(l.id))){ const t=addDays(today(),1), dp2=dayPlan(t), l2=LESSONS.filter(l=>dp2.secs.some(s=>s.ch===l.ch&&s.i===l.sec)&&!done(l.id)); if(l2.length){ list=l2; label="明日の範囲を会話で（先取り）"; } }
+  if(!list.length) list=LESSONS.filter(l=>!done(l.id)).slice(0,4);
+  if(!list.length) return "";
+  return `<div class="panel lzhome"><div class="eyebrow">💬 会話で学ぶ ・ ${label}</div>
+    <p class="small-muted" style="margin:2px 0 8px">読むのがしんどい日は、先生との会話で。1本3分、最後までやると参考書を読んだことになります。</p>
+    <div class="lzlist">${list.map(l=>{ const d=done(l.id); return `<button class="lzitem ${d?"done":""}" data-lesson="${l.id}"><span class="t">${d?"✓ ":""}${esc(l.title)}</span><span class="m">${d?`${d.score}/${d.total}問正解・もう一回`:`${l.min}分`}</span></button>`; }).join("")}</div></div>`;
+}
 
 /* ================= 起動 ================= */
 save(false); renderPill(); renderTimerBar();
