@@ -149,6 +149,15 @@ main{max-width:1120px;margin:0 auto;padding:20px 16px 64px}
 .chs{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
 .chs span{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:1px 8px}
 .chs span.ok{background:var(--ok-soft);border-color:transparent}
+.stage h4{word-break:keep-all;overflow-wrap:anywhere}
+.chs-lbl{font-size:12px;color:var(--muted);margin-top:8px}
+.st-left{margin-top:10px;border-top:1px dashed var(--line);padding-top:8px}
+.st-left summary{cursor:pointer;font-weight:700;font-size:14px}
+.st-left ul{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.st-left li{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;font-size:14px}
+.st-left .lt-wk{font-size:11.5px;color:var(--muted);white-space:nowrap}
+.st-left .lt-tx{min-width:0}
+.st-left a.btn{text-decoration:none}
 .ready{display:flex;gap:16px;align-items:center}
 .ready .big{font-family:var(--f-mono);font-size:46px;font-weight:600;line-height:1}
 .ready .big small{font-size:18px;color:var(--muted)}
@@ -3927,7 +3936,8 @@ function roadData(){
     const tasks=WEEKS.filter(w=>w.w>=st.weeks[0]&&w.w<=st.weeks[1]).flatMap(w=>w.tasks);
     const done=tasks.filter(taskDone).length;
     const isCur=pp.before?st.n===1:(!pp.over&&pp.w>=st.weeks[0]&&pp.w<=st.weeks[1]);
-    return Object.assign({},st,{from:sc[st.weeks[0]-1].from,to:sc[st.weeks[1]-1].to,done,total:tasks.length,
+    const left=WEEKS.filter(w=>w.w>=st.weeks[0]&&w.w<=st.weeks[1]).flatMap(w=>w.tasks.filter(t=>!taskDone(t)).map(t=>Object.assign({w:w.w},t)));
+    return Object.assign({},st,{from:sc[st.weeks[0]-1].from,to:sc[st.weeks[1]-1].to,done,total:tasks.length,left,
       state:done===tasks.length?"done":isCur?"cur":"todo"});
   });
   let expected=0;
@@ -3964,7 +3974,9 @@ function roadHTML(){
           <h4>ステージ${s.n}　${esc(s.title)}${s.state==="cur"?`<span class="wtag">いまここ</span>`:""}<span class="dt">${wl(s.weeks[0])}${s.weeks[1]!==s.weeks[0]?"〜"+s.weeks[1]:""} ・ ${md(s.from)}〜${md(s.to)}</span></h4>
           <p>${esc(s.desc)}</p>
           <div class="bar"><i style="width:${pct(s.done,s.total)}%"></i></div><span class="small-muted mono">タスク ${s.done}/${s.total}</span>
-          <div class="chs">${s.ch.length?s.ch.map(id=>`<span class="${S.read[id]?"ok":""}">${S.read[id]?"✓ ":""}${esc(title(id))}</span>`).join(""):`<span>IPA公開問題</span><span>間違えた問題の総復習</span>`}</div>
+          ${s.ch.length?`<div class="chs-lbl">参考書</div>`:""}<div class="chs">${s.ch.length?s.ch.map(id=>`<span class="${S.read[id]?"ok":""}">${S.read[id]?"✓ ":""}${esc(title(id))}</span>`).join(""):`<span>IPA公開問題</span><span>間違えた問題の総復習</span>`}</div>
+          ${s.left.length?`<details class="st-left" ${s.state==="cur"?"open":""}><summary>のこりのタスク ${s.left.length}個${s.ch.length&&s.ch.every(id=>S.read[id])?"（参考書は読み終わり。あとは問題と手を動かす練習）":""}</summary>
+            <ul>${s.left.map(t=>`<li><span class="lt-wk">${wl(t.w)}</span><span class="lt-tx">${esc(t.t)}</span>${t.ch?`<button class="btn small" data-open-ch="${t.ch}">読む</button>`:t.q?`<button class="btn small" data-open-q="${t.q}">解く</button>`:t.go?`<button class="btn small" data-goto="${t.go}">過去問</button>`:`<a class="btn small" href="#wk-${t.w}" data-wk="${t.w}">チェック</a>`}</li>`).join("")}</ul></details>`:""}
         </div></div>`).join("")}
         <div class="stage ${S.exam&&S.exam<=today()?"done":"todo"}"><span class="dot">受</span><div><h4>受験<span class="dt">${examDt}</span></h4><p>CBT方式。科目A（60問・90分）と科目B（20問・100分）</p></div></div>
         <div class="stage todo"><span class="dot">★</span><div><h4>合格</h4><p>科目A・科目Bともに 600点以上（1000点満点）</p></div></div>
@@ -4227,7 +4239,7 @@ function renderPlan(){
     <span class="small-muted" style="flex-basis:100%">${note}</span></div>`; })()}
   <div class="weeks">${WEEKS.map(w=>{const d=w.tasks.filter(taskDone).length, pp=planPos(), sp=schedule()[w.w-1];
     const cur=!pp.before&&!pp.over&&pp.w===w.w, past=!pp.before&&(pp.over||w.w<pp.w), left=w.tasks.length-d;
-    return `<article class="week ${cur?"cur":""}">
+    return `<article class="week ${cur?"cur":""}" id="wk-${w.w}">
       <div class="week-head"><span class="week-no">${wl(w.w)}</span><h3>${esc(w.title)}</h3>${cur?`<span class="wtag">いまここ</span>`:""}${past&&left?`<span class="wtag late">やり残し ${left}</span>`:""}<span class="pct">${d}/${w.tasks.length}</span><span class="dates">${md(sp.from)} 〜 ${md(sp.to)}（${sp.len}日）</span></div>
       <p class="goal">${esc(w.goal)}</p>
       <div>${w.tasks.map(t=>`<div class="task ${taskDone(t)?"done":""}">
@@ -4247,6 +4259,7 @@ function renderPlan(){
   $("#plan-exam").addEventListener("change",e=>{ if(e.target.value) setExam(e.target.value); renderPlan(); });
   const pc=$("#plan-exam-clear"); if(pc) pc.addEventListener("click",()=>{ setExam(""); renderPlan(); });
   bindJumps($("#v-plan"));
+  $("#v-plan").querySelectorAll("[data-wk]").forEach(a=>a.addEventListener("click",e=>{ e.preventDefault(); const el=document.getElementById("wk-"+a.dataset.wk); if(el) el.scrollIntoView({behavior:"smooth",block:"start"}); }));
 }
 
 /* ================= 使い方 ================= */
