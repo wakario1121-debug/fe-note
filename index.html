@@ -123,6 +123,9 @@ main{max-width:1120px;margin:0 auto;padding:20px 16px 64px}
 .step label{font-size:14px;min-width:0}
 .step .min{font-family:var(--f-mono);font-size:12px;color:var(--muted);margin-left:6px;white-space:nowrap}
 .step.done label{color:var(--muted);text-decoration:line-through}
+.step-lz{grid-column:1/-1;display:flex;flex-direction:column;gap:6px;padding-left:30px}
+.step-lz .lbl{font-size:12.5px;font-weight:700;color:var(--accent)}
+.step-lz .lzitem{padding:8px 12px}
 .flow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
 .flow > div{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--bg);font-size:14px}
 .flow b{font-family:var(--f-display);font-size:17px;display:block}
@@ -3923,6 +3926,12 @@ function openSection(ch,i){
   if(h){ h.scrollIntoView(); window.scrollBy(0,-90); }
 }
 
+// 今日の範囲の節に会話の授業があれば、ボタンを並べる（会話を最後までやると、その節を読んだことになる）
+function stepLessons(secs){ try{
+  const L=secs.map(s=>({s,l:lessonFor(s.ch,s.i)})).filter(x=>x.l); if(!L.length) return "";
+  const done=id=>(S.lessons||{})[id];
+  return `<div class="step-lz"><span class="lbl">💬 会話で読む（1本3分）</span>${L.map(({s,l})=>{ const d=done(l.id), rd=secDone(s.k); return `<button class="lzitem ${d||rd?"done":""}" data-lesson="${l.id}"><span class="t">${d||rd?"✓ ":""}${esc(l.title)}</span><span class="m">${d?`${d.score}/${d.total}問・もう一回`:rd?"読んだ・会話でも":`${l.min}分`}</span></button>`; }).join("")}</div>`;
+} catch(e){ return ""; } }
 /* ================= 合格までの道筋 ================= */
 const STAGES=[
   {n:1,title:"基礎固め",weeks:[1,4],desc:"計算問題とアルゴリズムの土台。科目Bの擬似言語もここから始める",ch:["kiso","kiso2","algo","hw","sys","hwlogic","sw","db","hi"]},
@@ -4040,7 +4049,7 @@ function renderHome(){
   const dp=dayPlan(t), dch=dp.chs[0]||dp.weekChs[0]||nightCh;
   const STEPS=[
     dp.secs.length
-      ?["read",`今日の範囲を読む：${rangeText(dp.secs)}`,M[0],`<button class="btn small" data-open-sec="${dp.secs[0].ch}:${dp.secs[0].i}">読む</button>`]
+      ?["read",`今日の範囲を読む：${rangeText(dp.secs)}`,M[0],`<button class="btn small" data-open-sec="${dp.secs[0].ch}:${dp.secs[0].i}">読む</button>`,stepLessons(dp.secs)]
       :dp.weekChs.length
         ?["read",`ふり返りの日：${dp.weekChs.map(c=>"「"+chById(c).title+"」").join("")}の図とアニメを見直す`,M[0],`<button class="btn small" data-open-ch="${dp.weekChs[0]}">見直す</button>`]
         :["read","総仕上げ：苦手な分野の参考書を読み直す",M[0],`<button class="btn small" data-goto="past">苦手を見る</button>`],
@@ -4118,7 +4127,7 @@ function renderHome(){
             <span class="chips" style="margin-left:auto"><button class="chip" data-night="60" aria-pressed="${NL===60}">1時間</button><button class="chip" data-night="120" aria-pressed="${NL===120}">2時間</button></span></div>
           <div class="slot-body"><div class="hint">机に座って紙とペンを用意。4つのうち3つで達成（${nDone}/3）・ 終えると自動でチェックが付きます。紙で勉強する間はタイマーで時間を計れます</div><button class="btn small" data-timer>${S.timer?"⏱ 計測中":"⏱ タイマー開始"}</button></div>
           ${ss.night&&aheadCh?`<div class="slot-body"><div class="hint">今夜の分は達成。余裕があれば次の章「${esc(chById(aheadCh).title)}」を先に読めます</div><button class="btn" data-open-ch="${aheadCh}">先に読む</button></div>`:""}
-          <div class="steps">${STEPS.map(([k,txt,min,btn])=>{const on=!!(d.n||{})[k];return `<div class="step ${on?"done":""}"><input type="checkbox" id="night-${k}" data-step="${k}" ${on?"checked":""}><label for="night-${k}">${esc(txt)}<span class="min">${min}分</span></label>${btn}</div>`;}).join("")}</div>
+          <div class="steps">${STEPS.map(([k,txt,min,btn,extra])=>{const on=!!(d.n||{})[k];return `<div class="step ${on?"done":""}"><input type="checkbox" id="night-${k}" data-step="${k}" ${on?"checked":""}><label for="night-${k}">${esc(txt)}<span class="min">${min}分</span></label>${btn}${extra||""}</div>`;}).join("")}</div>
         </div>
       </div>
     </div>
@@ -5854,6 +5863,7 @@ function lessonHomeHTML(){
   if(!LESSONS.length) return "";
   const dp=dayPlan(), done=id=>(S.lessons||{})[id];
   let list=LESSONS.filter(l=>dp.secs.some(s=>s.ch===l.ch&&s.i===l.sec)), label="今日の範囲を会話で";
+  if(list.length&&!list.every(l=>done(l.id))) return "";
   if(!list.length||list.every(l=>done(l.id))){ const t=addDays(today(),1), dp2=dayPlan(t), l2=LESSONS.filter(l=>dp2.secs.some(s=>s.ch===l.ch&&s.i===l.sec)&&!done(l.id)); if(l2.length){ list=l2; label="明日の範囲を会話で（先取り）"; } }
   if(!list.length) list=LESSONS.filter(l=>!done(l.id)).slice(0,4);
   if(!list.length) return "";
