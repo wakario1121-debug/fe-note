@@ -249,6 +249,7 @@ main{max-width:1120px;margin:0 auto;padding:20px 16px 64px}
 .lzb.big{font-size:26px;font-weight:700;letter-spacing:.06em;font-family:var(--f-mono,monospace)}
 .lzb.fig{padding:10px;max-width:92%}
 .lzb.fig svg{display:block;width:100%;height:auto}
+.lzb.fig>figure,.lzb.fig>.fig{margin:0;border:0;padding:0;background:none;box-shadow:none}
 .lzb.ai{border-color:var(--accent)}
 .lzb .who{display:block;font-size:11.5px;color:var(--accent);font-weight:700}
 .lztyping{display:flex;gap:4px;padding:12px 14px}
@@ -4600,7 +4601,7 @@ function startDeck(cat,onlyNew){
     if(onlyNew) pool=pool.filter(x=>!((S.cards[x.id]||{}).box>=1));
     pool=shuffle(pool);
   }
-  deck={cat,onlyNew,ids:pool.map(x=>x.id),i:0,flipped:false,again:{},rev:cat==="today"?"alt":(deck&&deck.rev==="on"?"on":"off"),opts:{},rpick:{}};
+  deck={cat,onlyNew,ids:pool.map(x=>x.id),i:0,flipped:false,again:{},rev:cardFrontPref()?"off":"on",opts:{},rpick:{}};
 }
 function renderCards(){
   if(!deck) startDeck("today",false);
@@ -4657,12 +4658,12 @@ function renderCards(){
     <button class="chip" data-dcat="all" aria-pressed="${deck.cat==="all"}">全分野</button>
     ${CHAPTERS.map(c=>`<button class="chip" data-dcat="${c.id}" aria-pressed="${deck.cat===c.id}">${esc(c.title)}</button>`).join("")}
   </div>
-  <div class="chips">${deck.cat!=="today"?`<button class="chip" id="f-only" aria-pressed="${deck.onlyNew}">まだ覚えていない札だけ</button><button class="chip" id="f-rev" aria-pressed="${deck.rev==="on"}">逆向き（意味→用語）</button>`:`<span class="small-muted">今日のカードは「用語→意味」と「意味→用語（4択）」が交互に出ます</span>`}</div>
+  <div class="chips">${deck.cat!=="today"?`<button class="chip" id="f-only" aria-pressed="${deck.onlyNew}">まだ覚えていない札だけ</button>`:""}<button class="chip" id="f-rev" aria-pressed="${deck.rev!=="on"}">用語→意味（めくる）にする</button></div>
   <div class="flash-wrap">${body}</div>`;
   const root=$("#v-cards");
   root.querySelectorAll("[data-dcat]").forEach(b=>b.addEventListener("click",()=>{startDeck(b.dataset.dcat,deck.onlyNew);renderCards();}));
   const fo=$("#f-only"); if(fo) fo.addEventListener("click",()=>{startDeck(deck.cat,!deck.onlyNew);renderCards();});
-  const fr=$("#f-rev"); if(fr) fr.addEventListener("click",()=>{ deck.rev=deck.rev==="on"?"off":"on"; renderCards(); });
+  const fr=$("#f-rev"); if(fr) fr.addEventListener("click",()=>{ deck.rev=deck.rev==="on"?"off":"on"; deck.flipped=false; try{ localStorage.setItem("fe-card-front",deck.rev==="on"?"0":"1"); }catch(e){} renderCards(); });
   // 逆向き：選んだ答えで正誤を決め、そのまま judge(ok) に渡す
   root.querySelectorAll("[data-rpick]").forEach(b=>b.addEventListener("click",()=>{ deck.rpick[deck.i]=b.dataset.rpick; renderCards(); const e=$("#v-cards .exp"); if(e&&e.scrollIntoView) e.scrollIntoView({block:"nearest",behavior:"smooth"}); }));
   const rn=$("#r-next"); if(rn) rn.addEventListener("click",()=>{ const x=CARDS.find(y=>y.id===deck.ids[deck.i]); judge(deck.rpick[deck.i]===x.id); });
@@ -4696,9 +4697,21 @@ async function explainCard(x,again){
 }
 // この札を逆向き（意味→用語の4択）で出すか。「今日のカード」は通常と逆向きを交互に
 const isRev=()=>deck&&(deck.rev==="on"||(deck.rev==="alt"&&deck.i%2===1));
+function cardFrontPref(){ try{ return localStorage.getItem("fe-card-front")==="1"; }catch(e){ return false; } }
+// まぎらわしさの点数：同じ節・同じ章、用語の字面が似ている、意味の文が似ている、用語の種類（英字略語／カタカナ）が同じ
+const simKind=t=>/^[A-Za-z0-9\/.\-\s＋+]+$/.test(t)?"a":/^[ァ-ヶー・\s]+$/.test(t)?"k":/[A-Za-z]/.test(t)?"m":"j";
+const simBg=s=>{ s=String(s).replace(/[（(].*?[)）]/g,"").replace(/[\s・、。，,]/g,"").toUpperCase(); const o=new Set(); if(s.length===1) o.add(s); for(let i=0;i<s.length-1;i++) o.add(s.slice(i,i+2)); return o; };
+const simJac=(a,b)=>{ let n=0; a.forEach(v=>{ if(b.has(v)) n++; }); return n/Math.max(1,a.size+b.size-n); };
+const SIMC={};
+function simScore(x,y){ let s=0; const tx=typeof TERMSEC!=="undefined"&&TERMSEC[x.t], ty=typeof TERMSEC!=="undefined"&&TERMSEC[y.t];
+  if(y.c===x.c) s+=1; if(tx&&ty&&tx[0]===ty[0]&&tx[1]===ty[1]) s+=2;
+  const fx=chById(x.c), fy=chById(y.c); if(fx&&fy&&fx.field!==fy.field) s-=2;
+  const kx=simKind(x.t), ky=simKind(y.t); if(kx===ky) s+=.6; if(kx==="a"&&ky==="a"&&x.t[0]===y.t[0]) s+=.5;
+  const bx=simBg(x.t), by=simBg(y.t), cov=(a,b)=>{ let n=0; a.forEach(v=>{ if(b.has(v)) n++; }); return n/Math.max(1,a.size); };
+  return s+4*simJac(bx,by)+3*simJac(simBg(x.d),simBg(y.d))+1.5*Math.max(cov(bx,simBg(y.d)),cov(by,simBg(x.d))); }
+function simList(x){ return SIMC[x.id]||(SIMC[x.id]=CARDS.filter(y=>y.t!==x.t&&y.d!==x.d&&!x.d.includes(y.t.replace(/（.*?）/g,""))&&!y.t.includes(x.t)).map(y=>[y,simScore(x,y)]).sort((a,b)=>b[1]-a[1]).map(a=>a[0])); }
 function revOpts(x){
-  if(!deck.opts[deck.i]){ const same=shuffle(CARDS.filter(y=>y.c===x.c&&y.t!==x.t&&y.d!==x.d)), other=shuffle(CARDS.filter(y=>y.c!==x.c&&y.t!==x.t));
-    const wrong=[...same,...other].filter((y,i,a)=>a.findIndex(z=>z.t===y.t)===i).slice(0,3);
+  if(!deck.opts[deck.i]){ const wrong=shuffle(simList(x).slice(0,5)).slice(0,3);
     deck.opts[deck.i]=shuffle([x,...wrong]).map(y=>y.id); }
   return deck.opts[deck.i].map(id=>CARDS.find(y=>y.id===id));
 }
@@ -5761,13 +5774,13 @@ function lzAuto(){ const n=LZ.L.steps[LZ.i]; if(!n) return; if(n.fig){ lzStep();
 function lzStep(){
   if(!LZ||LZ.i>=LZ.L.steps.length) return; const x=LZ.L.steps[LZ.i++]; lzProg();
   if(x.s||x.big){ LZ.busy=true; lzFoot(""); lzType(()=>{ lzRow(x.s||x.big,"t",x.big?"big":""); LZ.busy=false; lzAuto(); }); }
-  else if(x.fig){ lzRow(LZF[x.fig]||"","t","fig"); lzAuto(); }
+  else if(x.fig){ const f=String(x.fig); lzRow(f.startsWith("FIG:")?((typeof FIG!=="undefined"&&FIG[f.slice(4)])||""):(LZF[f]||""),"t","fig"); lzAuto(); }
   else if(x.ask){ lzFoot(x.ask.map((t,k)=>`<button class="lzopt" data-k="${k}">${t}</button>`).join(""));
     $("#lz-foot").querySelectorAll("button").forEach(b=>b.onclick=()=>{ const k=+b.dataset.k; lzRow(x.ask[k],"me"); lzFoot(""); LZ.busy=true; lzType(()=>{ lzRow(x.re[k]); LZ.busy=false; lzAuto(); }); }); }
   else if(x.quiz){ const box=document.createElement("div"); box.className="lzq"; box.innerHTML=`<span class="tag">${x.tag||"問題"}</span><div class="q">${x.quiz}</div>`;
     const r=document.createElement("div"); r.className="lzr"+(LZ.last==="t"?" cont":""); r.innerHTML=`<div class="lzav" aria-hidden="true">先</div>`; r.appendChild(box); $("#lz-chat").appendChild(r); LZ.last="t"; lzScroll();
-    let hinted=false;
-    const draw=()=>{ lzFoot(x.o.map((t,k)=>`<button class="lzopt" data-k="${k}">${t}</button>`).join("")+(x.hint&&!hinted?`<button class="lzopt hintb" id="lz-hint">ヒント</button>`:""));
+    let hinted=false; const ord=shuffle(x.o.map((_,k)=>k));
+    const draw=()=>{ lzFoot(ord.map(k=>`<button class="lzopt" data-k="${k}">${x.o[k]}</button>`).join("")+(x.hint&&!hinted?`<button class="lzopt hintb" id="lz-hint">ヒント</button>`:""));
       const hb=$("#lz-hint"); if(hb) hb.onclick=()=>{ hinted=true; lzRow(x.hint); draw(); };
       $("#lz-foot").querySelectorAll("button[data-k]").forEach(b=>b.onclick=()=>{ const k=+b.dataset.k, ok=k===x.a; if(ok) LZ.score++;
         lzRow(x.o[k],"me"); lzFoot(""); LZ.busy=true;
@@ -5835,6 +5848,253 @@ function lessonHomeHTML(){
     <p class="small-muted" style="margin:2px 0 8px">読むのがしんどい日は、先生との会話で。1本3分、最後までやると参考書を読んだことになります。</p>
     <div class="lzlist">${list.map(l=>{ const d=done(l.id); return `<button class="lzitem ${d?"done":""}" data-lesson="${l.id}"><span class="t">${d?"✓ ":""}${esc(l.title)}</span><span class="m">${d?`${d.score}/${d.total}問正解・もう一回`:`${l.min}分`}</span></button>`; }).join("")}</div></div>`;
 }
+
+/* ---- 会話の授業（追加分）：基礎理論②の後半・UIとマルチメディア・ネットワーク ---- */
+Object.assign(LZF,{
+confusion:`<div class="lztbl"><table><tr><th></th><th>AIが陽性</th><th>AIが陰性</th></tr><tr><th>本当は陽性</th><td>TP（当たり）</td><td>FN（見のがし）</td></tr><tr><th>本当は陰性</th><td>FP（空ぶり）</td><td>TN（当たり）</td></tr></table></div>`
+});
+const LQ=(quiz,o,a,ok,ng,more={})=>Object.assign({quiz,o,a,ok,ng:ng||ok},more);
+LESSONS.push(
+ {id:"kiso2-4",ch:"kiso2",sec:4,title:"AIと機械学習",min:3,steps:[
+  {s:"今日は AI。人のように見分けたり予測したりする、コンピュータの技術だよ"},
+  {s:"その中でも「データから自分で学ぶ」のが <b>機械学習</b>"},
+  {ask:["自分で学ぶの？","へえ"],re:["たくさんの例を見せると、コンピュータが規則を見つけてくれるんだ","スマホの顔認証や翻訳も、この技術でできているよ"]},
+  {s:"学び方は3種類。見分けるコツは<span class=\"hl\">何を与えるか</span>"},
+  {fig:"FIG:mltypes"},
+  {s:"<b>教師あり学習</b>：問題と<b>正解</b>のセットを与える。写真＋「これは猫」みたいに"},
+  {s:"<b>教師なし学習</b>：<b>データだけ</b>を与えて、似たものどうしをグループに分ける（クラスタリング）"},
+  {s:"<b>強化学習</b>：正解の代わりに<b>報酬</b>。試行錯誤して、点数がいちばん高くなる行動を学ぶ"},
+  LQ("過去の購買データから、似た買い方の顧客をグループ分けしたい。合う学習は？",["教師なし学習","教師あり学習","強化学習","ルールベース"],0,"正解のないデータを似たものどうしで分けるのは、教師なし学習（クラスタリング）"),
+  LQ("ロボットが、うまく歩けたら点数をもらいながら歩き方を覚える。これは？",["強化学習","教師あり学習","教師なし学習","転移学習"],0,"点数（報酬）が最大になるように試行錯誤するのが強化学習"),
+  {s:"脳の神経のつながりをまねたしくみが <b>ニューラルネットワーク</b>"},
+  {fig:"FIG:nn"},
+  {s:"それを何層にも重ねたのが <b>ディープラーニング</b>。画像なら CNN、文章や音声みたいに順番のあるデータなら RNN が得意"},
+  LQ("ニューラルネットワークを多層にして、大量のデータから特徴を自動で見つけ出す技術は？",["ディープラーニング","エキスパートシステム","ルールベース推論","ファジィ推論"],0,"層を深く（ディープに）重ねるのでディープラーニング",null,{tag:"試験と同じ形"}),
+  {sum:["教師あり＝正解を与える、教師なし＝データだけ、強化＝報酬","ニューラルネットワークを多層にしたのがディープラーニング","画像は CNN、順番のあるデータは RNN"]}]},
+ {id:"kiso2-5",ch:"kiso2",sec:5,title:"生成AIと基盤モデル",min:3,steps:[
+  {s:"最近よく聞く <b>生成AI</b>。指示を出すと、文章や画像を新しく作ってくれるAIだよ"},
+  {s:"その指示文が <b>プロンプト</b>。出し方を工夫するのがプロンプトエンジニアリング"},
+  {s:"中身は、ものすごい量のデータで先に学習した <b>基盤モデル</b>。文章用の大きいものを <b>LLM</b>（大規模言語モデル）っていう"},
+  {ask:["基盤って？","なるほど"],re:["家の土台みたいなもの。いろんな用途に使える共通の土台を、先に作っておくんだ","その土台を、自分の用途に合わせて仕上げることもできるよ"]},
+  {s:"土台に、特定のデータで追加の学習をして得意分野を作るのが <b>ファインチューニング</b>"},
+  LQ("学習済みの基盤モデルに、社内の文書で追加の学習をして社内向けにする。これは？",["ファインチューニング","ハルシネーション","クラスタリング","データクレンジング"],0,"土台のモデルに追加で学習させて仕上げるのがファインチューニング"),
+  {s:"便利だけど、困った点もある"},
+  {s:"<b>ハルシネーション</b>：まちがった内容を、もっともらしく作ってしまうこと"},
+  {s:"<b>ディープフェイク</b>：本物そっくりの偽の映像や音声"},
+  {s:"<b>プロンプトインジェクション</b>：入力に悪い指示をまぜて、AIに想定外のことをさせる攻撃"},
+  LQ("生成AIが、事実と違う内容をもっともらしく答えてしまう現象は？",["ハルシネーション","ディープフェイク","バイアス","過学習"],0,"もっともらしいウソ＝ハルシネーション（幻覚という意味）"),
+  {s:"学習データの偏りで不公平な結果になるのが <b>バイアス</b>。判断の理由を見えるようにするのが <b>XAI</b>（説明可能なAI）"},
+  LQ("AIの判断について、その理由を人が理解できる形で示す技術は？",["XAI","LLM","GAN","RPA"],0,"Explainable（説明できる）AI で XAI",null,{tag:"試験と同じ形"}),
+  {sum:["生成AIへの指示がプロンプト、土台が基盤モデル（文章用は LLM）","追加で学習させて仕上げるのがファインチューニング","ハルシネーション・ディープフェイク・プロンプトインジェクションに注意"]}]},
+ {id:"kiso2-6",ch:"kiso2",sec:6,title:"AIの学習データと評価",min:3,steps:[
+  {s:"AIを作るときは、データを「学習用」と「テスト用」に分けるんだ"},
+  {s:"テスト用は、最後の実力チェックにだけ使う"},
+  {ask:["なんで分けるの？","ふむ"],re:["練習問題と本番が同じだと、本当の実力がわからないからなんだ","同じ問題で測ると、実力より高く見えちゃうんだ"]},
+  {s:"学習データに合わせすぎて、初めてのデータで当たらなくなるのが <b>過学習</b>"},
+  {s:"問題集の答えを丸暗記して、本番で解けないのと同じだね"},
+  LQ("学習データではほぼ100%当たるのに、新しいデータでは当たらない。この状態は？",["過学習","汎化","強化学習","交差検証"],0,"学習データに合わせすぎた状態が過学習"),
+  {s:"データを何組かに分けて、テスト役を入れ替えながら何回も測るのが <b>交差検証</b>"},
+  {s:"AIの成績の測り方も出る。病気の検査で考えよう"},
+  {fig:"confusion"},
+  {s:"<b>適合率</b>：「陽性」と言ったうち、本当に陽性だった割合。TP ÷（TP＋FP）"},
+  {s:"<b>再現率</b>：本当の陽性のうち、見つけられた割合。TP ÷（TP＋FN）"},
+  LQ("本当に陽性の人が100人いて、AIはそのうち80人を陽性と見つけた。再現率は？",["80%","20%","100%","決められない"],0,"見つけた80人 ÷ 本当の陽性100人 ＝ 80%"),
+  LQ("AIが陽性と判定した50人のうち、本当に陽性だったのは40人。適合率は？",["80%","40%","50%","90%"],0,"当たった40人 ÷ 陽性と言った50人 ＝ 80%",null,{tag:"試験と同じ形"}),
+  {sum:["学習用とテスト用に分ける。テスト用は最後だけ","合わせすぎ＝過学習。入れ替えて何度も測る＝交差検証","適合率＝言った中の当たり、再現率＝本物の中の見つけた割合"]}]},
+ {id:"kiso2-7",ch:"kiso2",sec:7,title:"確率・統計とデータ",min:3,steps:[
+  {s:"今日は確率と統計。計算問題がよく出るところ"},
+  {s:"まず「並べ方」と「選び方」。並べ方が <b>順列</b>、選び方が <b>組合せ</b>"},
+  {s:"5人から2人を選んで1列に<b>並べる</b>なら、5×4＝20通り"},
+  {s:"並び順は気にせず<b>選ぶ</b>だけなら、同じ組を2回ずつ数えているので 20÷2＝10通り"},
+  LQ("6人から委員を3人選ぶ（役割の区別なし）。選び方は何通り？",["20通り","120通り","18通り","216通り"],0,"並べ方 6×5×4＝120 を、3人の並び方 3×2×1＝6 で割って20通り"),
+  {s:"<b>期待値</b>は「平均するとどのくらいか」。値×確率を全部足す"},
+  LQ("1/2の確率で100円、1/2の確率で0円もらえるくじ。期待値は？",["50円","100円","0円","25円"],0,"100×1/2 ＋ 0×1/2 ＝ 50円"),
+  {s:"ばらつきは <b>標準偏差</b>。正規分布だと、平均±1σに約68%、±2σに約95%が入る"},
+  {s:"相関があっても原因とは限らない。アイスの売上と水の事故は、どちらも「暑さ」が原因（<b>擬似相関</b>）"},
+  LQ("夏に、アイスの売上と水難事故の件数に強い正の相関があった。正しい考え方は？",["気温という共通の原因がありそう","アイスが事故の原因","事故がアイスの原因","相関は必ずぐうぜん"],0,"相関＝因果ではない。共通の原因（気温）による擬似相関"),
+  {s:"表の形に整ったデータが <b>構造化データ</b>、文章や画像は <b>非構造化データ</b>"},
+  {s:"加工前のデータを何でもためておくのが <b>データレイク</b>、整理して分析用にためるのが <b>データウェアハウス</b>"},
+  LQ("加工する前のさまざまな形式のデータを、そのままの形で大量にためておく場所は？",["データレイク","データウェアハウス","データマート","データディクショナリ"],0,"湖（レイク）のように、何でもそのままためるのがデータレイク",null,{tag:"試験と同じ形"}),
+  {sum:["順列は並べ方、組合せは選び方（並べ方÷並び順の数）","期待値＝値×確率の合計","相関があっても因果とは限らない（擬似相関）"]}]},
+ {id:"hi-0",ch:"hi",sec:0,title:"画面の部品（GUI）",min:2,steps:[
+  {s:"今日は画面の部品の話。アプリでよく見るボタンたち"},
+  {s:"アイコンやボタンを指やマウスで操作する画面を <b>GUI</b> っていう"},
+  {fig:"FIG:gui"},
+  {s:"<b>ラジオボタン</b>は丸い形で、<span class=\"hl\">1つだけ</span>選べる"},
+  {s:"<b>チェックボックス</b>は四角で、<span class=\"hl\">いくつでも</span>選べる"},
+  LQ("血液型のように、どれか1つだけ選ばせたい。使う部品は？",["ラジオボタン","チェックボックス","テキストボックス","スライダ"],0,"1つだけ選ぶ＝ラジオボタン（昔のラジオの、押すと他が戻るボタンが由来）"),
+  {s:"<b>プルダウンメニュー</b>は、押すと一覧が開いて1つ選ぶ。場所を取らない"},
+  {s:"<b>コンボボックス</b>は、プルダウンに<span class=\"hl\">文字も打ち込める</span>枠が付いたもの"},
+  LQ("好きな趣味を、当てはまるものすべて選ばせたい。合う部品は？",["チェックボックス","ラジオボタン","プルダウンメニュー","コンボボックス"],0,"いくつでも選べる＝チェックボックス"),
+  LQ("一覧から選ぶこともでき、一覧にない値は直接入力もできる部品は？",["コンボボックス","ラジオボタン","チェックボックス","プルダウンメニュー"],0,"選ぶ＋打ち込む＝コンボボックス",null,{tag:"試験と同じ形"}),
+  {sum:["ラジオボタン＝1つだけ、チェックボックス＝いくつでも","プルダウンメニュー＝一覧から1つ","コンボボックス＝一覧から選ぶ＋手入力"]}]},
+ {id:"hi-1",ch:"hi",sec:1,title:"使いやすさの設計",min:2,steps:[
+  {s:"今日は「使いやすさ」の話"},
+  {s:"使いやすさを <b>ユーザビリティ</b> っていう。目的を、ストレスなく達成できるかどうか"},
+  {s:"工夫の例：決まった操作を記録して1回でできる <b>マクロ</b>、キーの組合せで呼び出す <b>ショートカットキー</b>、元に戻す <b>Undo</b>"},
+  LQ("毎日同じ手順でやる作業を、1回の操作で済ませたい。使う機能は？",["マクロ機能","Undo","オンラインヘルプ","プログレスバー"],0,"操作を記録してまとめて実行するのがマクロ"),
+  {s:"「みんなのための設計」もよく出るよ"},
+  {s:"<b>ユニバーサルデザイン</b>：<span class=\"hl\">はじめから</span>、年齢や障害に関係なく誰でも使える形にする"},
+  {s:"<b>バリアフリー</b>：今ある<span class=\"hl\">障壁を取り除く</span>（段差にスロープを付ける）"},
+  LQ("最初から、年齢・言語・障害の有無にかかわらず誰でも使えるように設計する考え方は？",["ユニバーサルデザイン","バリアフリーデザイン","レスポンシブデザイン","ペルソナ"],0,"はじめから誰でも＝ユニバーサル。あとから障壁を取るのがバリアフリー"),
+  {s:"入力ミスを防ぐ工夫も大事。コードに検査用の数字を1けた付けて、打ち間違いを見つけるのが <b>チェックディジット</b>"},
+  LQ("入力されたコードの誤りを検出するために、コードに付け加える数字は？",["チェックディジット","パリティビット","ハッシュ値","主キー"],0,"コードの末尾に付ける検査用の数字＝チェックディジット",null,{tag:"試験と同じ形"}),
+  {sum:["ユーザビリティ＝ストレスなく目的を達成できる度合い","ユニバーサル＝はじめから誰でも、バリアフリー＝障壁を取り除く","チェックディジットで入力ミスを見つける"]}]},
+ {id:"hi-2",ch:"hi",sec:2,title:"文字と音のデータ",min:3,steps:[
+  {s:"文字の形のデータを <b>フォント</b> っていう。2種類あるよ"},
+  {s:"<b>ビットマップフォント</b>：点の集まり。拡大するとギザギザ"},
+  {s:"<b>アウトラインフォント</b>：輪郭を線の情報で持つ。拡大してもなめらか"},
+  LQ("拡大・縮小しても、文字の形がなめらかなフォントは？",["アウトラインフォント","ビットマップフォント","等幅フォント","ドットフォント"],0,"輪郭（アウトライン）を計算し直すので、なめらか"),
+  {s:"次は音。空気のふるえ（アナログ）を 0と1（デジタル）にする方法が <b>PCM</b>"},
+  {fig:"FIG:pcm"},
+  {s:"① <b>標本化</b>：一定の間隔で値を取る　② <b>量子化</b>：決まった段階に丸める　③ <b>符号化</b>：0と1にする"},
+  LQ("PCMで、取り出した値を決まった段階の数値に丸める手順は？",["量子化","標本化","符号化","圧縮"],0,"段階（量子）にそろえるので量子化"),
+  {s:"データ量は「1秒に取る回数 × 量子化ビット数 × 秒数」"},
+  LQ("1秒に8,000回（8kHz）、8ビットで1秒録音したときのデータ量は？",["8,000バイト","64,000バイト","8バイト","1,000バイト"],0,"8,000×8＝64,000ビット。8で割ってバイトにすると8,000バイト",null,{tag:"試験と同じ形",hint:"ヒント：最後にビットをバイトに直す（÷8）"}),
+  {sum:["アウトラインフォントは拡大してもなめらか","PCM：標本化 → 量子化 → 符号化","データ量＝回数×ビット数×秒数（バイトは÷8）"]}]},
+ {id:"hi-3",ch:"hi",sec:3,title:"画像と動画",min:3,steps:[
+  {s:"今日は画像と動画の用語。言葉さえ覚えれば取れるところ"},
+  {s:"斜めの線のギザギザを、中間の色でなめらかに見せるのが <b>アンチエイリアシング</b>"},
+  {fig:"FIG:antialias"},
+  {s:"物の表面に模様の画像を貼って質感を出すのが <b>テクスチャマッピング</b>"},
+  {s:"3次元のデータから画像を作るのが <b>レンダリング</b>"},
+  LQ("3DCGで、物体の表面に模様の画像を貼り付けて質感を出す技術は？",["テクスチャマッピング","アンチエイリアシング","レンダリング","モーフィング"],0,"テクスチャ（質感）をマッピング（貼り付け）する"),
+  {s:"画面の色は光の3原色 <b>RGB</b>。混ぜるほど明るくなる。印刷は CMY で、混ぜるほど暗くなる"},
+  {s:"画像のデータ量は「横の画素数 × 縦の画素数 × 1画素のバイト数」"},
+  LQ("1,000×800画素、1画素3バイトの画像のデータ量は？",["2.4Mバイト","800Kバイト","19.2Mバイト","24Mバイト"],0,"1,000×800×3＝2,400,000バイト＝2.4Mバイト"),
+  {s:"動画は大きいので圧縮する。よく出るのが <b>H.264</b>（MPEG-4 AVC）。ネット配信やブルーレイで使われている"},
+  {s:"仮想空間に入り込むのが <b>VR</b>、現実の映像に情報を重ねるのが <b>AR</b>"},
+  LQ("スマホのカメラ映像に家具のCGを重ねて、部屋に置いたときの様子を見せる技術は？",["AR","VR","H.264","レンダリング"],0,"現実に重ねる＝AR（拡張現実）",null,{tag:"試験と同じ形"}),
+  {sum:["アンチエイリアシング＝ギザギザを目立たなくする","テクスチャマッピング＝表面に模様を貼る","画像のデータ量＝横×縦×1画素の量。動画圧縮は H.264"]}]},
+ {id:"nw-0",ch:"nw",sec:0,title:"伝送時間の計算",min:3,steps:[
+  {s:"ネットワークは、コンピュータを回線でつないだしくみ"},
+  {s:"回線は道路みたいなもの。混むから、いつも最大の速さで送れるわけじゃない"},
+  {s:"実際に使える割合を <b>伝送効率</b> っていう"},
+  {fig:"FIG:txtime"},
+  {s:"伝送時間 ＝ データ量 ÷（回線速度 × 伝送効率）"},
+  {ask:["むずかしそう","やってみる"],re:["大丈夫、ひっかけは1つだけ。バイトとビット！","その前に、ひっかけを1つだけ覚えよう"]},
+  {s:"データ量は「バイト」、回線速度は「ビット/秒」で出てくる。<span class=\"hl\">1バイト＝8ビット</span>にそろえる"},
+  LQ("1Mバイトは何ビット？（1M＝100万）",["800万ビット","100万ビット","125,000ビット","8ビット"],0,"100万バイト×8＝800万ビット"),
+  LQ("10Mバイトのデータを、100Mビット/秒・伝送効率80%の回線で送ると何秒？",["1秒","0.8秒","1.25秒","8秒"],0,"10Mバイト＝80Mビット。実際の速さは100×0.8＝80Mビット/秒。80÷80＝1秒",null,{tag:"試験と同じ形",hint:"ヒント：まずバイトをビットに（×8）"}),
+  {sum:["伝送時間＝データ量÷（回線速度×伝送効率）","バイトとビットをそろえる（1バイト＝8ビット）"]}]},
+ {id:"nw-1",ch:"nw",sec:1,title:"回線と交換方式",min:2,steps:[
+  {s:"通信のやり方は、大きく2つ"},
+  {fig:"FIG:switching"},
+  {s:"<b>回線交換</b>：通話中は回線を<span class=\"hl\">ひとり占め</span>。昔の電話。品質は安定、でも話していない間もむだになる"},
+  {s:"<b>パケット交換</b>：データを小さな <b>パケット</b> に分けて送る。1本の回線を<span class=\"hl\">みんなで共有</span>。インターネットはこっち"},
+  LQ("インターネットで使われ、1本の回線を多くの通信で共有できる方式は？",["パケット交換方式","回線交換方式","専用線","半二重通信"],0,"小分けにして共有＝パケット交換"),
+  {s:"送信と受信を同時にできるのが <b>全二重</b>、交互なのが <b>半二重</b>（トランシーバーみたいに）"},
+  LQ("トランシーバーのように、送信と受信を交互に行う通信は？",["半二重通信","全二重通信","単方向通信","パケット通信"],0,"交互＝半二重、同時＝全二重"),
+  {s:"共有の回線の上に、暗号化した「専用線っぽい道」を作るのが <b>VPN</b>"},
+  LQ("インターネットなどの共有の回線上に、暗号化などで仮想的な専用線を作る技術は？",["VPN","NAT","DNS","VLAN"],0,"Virtual Private Network＝仮想の専用線",null,{tag:"試験と同じ形"}),
+  {sum:["回線交換＝ひとり占め、パケット交換＝共有","全二重＝同時、半二重＝交互","VPN＝仮想の専用線"]}]},
+ {id:"nw-2",ch:"nw",sec:2,title:"誤りの検出と訂正",min:3,steps:[
+  {s:"送っている途中で、雑音のせいで0と1が入れ替わることがある（<b>ビット誤り</b>）"},
+  {s:"それを見つけるしくみ。まずは <b>パリティチェック</b>"},
+  {fig:"FIG:parity"},
+  {s:"1の個数が偶数になるように、最後に1ビット足して送る（偶数パリティ）"},
+  LQ("偶数パリティで 1011001 を送る。付けるパリティビットは？",["0","1"],0,"1が4個でもう偶数だから、0を付ける"),
+  {s:"弱点は2つ。2ビット同時に化けると気づけない。見つけるだけで<span class=\"hl\">直せない</span>"},
+  {s:"縦と横の両方にパリティを付けると、場所がわかって1ビットなら直せる（垂直水平パリティ）"},
+  {s:"<b>CRC</b>：決まった式（生成多項式）で割った<span class=\"hl\">余り</span>を付けて送る。今の主流"},
+  {s:"<b>ハミング符号</b>：1ビットの誤りを直せて、2ビットの誤りは見つけられる"},
+  LQ("送るデータを生成多項式で割った余りを、チェック用データとして付ける方式は？",["CRC","パリティチェック","ハミング符号","チェックディジット"],0,"「生成多項式」が出たら CRC",null,{tag:"試験と同じ形"}),
+  LQ("1ビットの誤りを訂正でき、2ビットの誤りを検出できる方式は？",["ハミング符号","偶数パリティ","奇数パリティ","CRC"],0,"1ビット訂正・2ビット検出＝ハミング符号"),
+  {sum:["パリティ：1の数をそろえる。見つけるだけ","CRC＝生成多項式で割った余り","ハミング符号＝1ビット訂正・2ビット検出"]}]},
+ {id:"nw-3",ch:"nw",sec:3,title:"LANとWAN",min:2,steps:[
+  {s:"建物の中のネットワークが <b>LAN</b>、遠くの拠点どうしを結ぶのが <b>WAN</b>"},
+  {fig:"FIG:lanwan"},
+  {s:"LANは自分たちで作れる。WANは道路みたいに公共の場所を通るので、通信事業者の回線を借りる"},
+  LQ("東京本社と大阪支店のLANを、通信事業者の回線で結んだネットワークは？",["WAN","LAN","VLAN","PAN"],0,"離れた拠点どうし＝WAN（広域）"),
+  {s:"無線LANのネットワークの名前は <b>SSID</b>"},
+  {s:"無線は電波がぶつかりやすいので、少し待ってから送る <b>CSMA/CA</b> を使う（有線は CSMA/CD）"},
+  LQ("無線LANで、ぶつかるのを避けるため送る前に待つ方式は？",["CSMA/CA","CSMA/CD","TCP","ARP"],0,"CA＝Collision Avoidance（衝突をさける）"),
+  {s:"スイッチの設定で、配線と関係なくグループ分けするのが <b>VLAN</b>"},
+  LQ("配線を変えずに、スイッチの設定で論理的にネットワークを分ける技術は？",["VLAN","VPN","NAT","DHCP"],0,"Virtual LAN＝仮想的に分けたLAN",null,{tag:"試験と同じ形"}),
+  {sum:["LAN＝建物の中、WAN＝離れた拠点どうし","無線LANは CSMA/CA、名前は SSID","VLAN＝設定で論理的に分ける"]}]},
+ {id:"nw-4",ch:"nw",sec:4,title:"IPアドレスとポート番号",min:3,steps:[
+  {s:"データを届けるには、相手の番号がいる"},
+  {s:"<b>IPアドレス</b> は、ネット上のコンピュータの<span class=\"hl\">住所</span>。IPv4 は32ビット"},
+  {fig:"FIG:ipport"},
+  {s:"<b>ポート番号</b> は、そのコンピュータの中の<span class=\"hl\">部屋番号</span>。どのアプリに渡すかを決める"},
+  LQ("同じパソコンで動く Web とメールの、どちらにデータを渡すかを区別する番号は？",["ポート番号","IPアドレス","MACアドレス","サブネットマスク"],0,"建物（パソコン）の中の部屋（アプリ）＝ポート番号"),
+  {s:"<b>MACアドレス</b> は、LANカードなど機器ごとの製造番号。48ビット"},
+  {s:"IPアドレスから相手の MACアドレスを調べるのが <b>ARP</b>"},
+  LQ("IPアドレスから、相手の MACアドレスを求めるプロトコルは？",["ARP","DNS","DHCP","NTP"],0,"Address Resolution（住所を調べる）Protocol"),
+  {s:"よく出るポート番号：HTTP 80、HTTPS 443、SMTP 25、DNS 53"},
+  LQ("Web の暗号化通信（HTTPS）で使われる代表的なポート番号は？",["443","80","25","53"],0,"HTTP が80、暗号化した HTTPS が443",null,{tag:"試験と同じ形"}),
+  {sum:["IPアドレス＝住所、ポート番号＝部屋番号","MACアドレス＝機器の製造番号（48ビット）","ARP＝IPアドレスから MACアドレスを調べる"]}]},
+ {id:"nw-5",ch:"nw",sec:5,title:"サブネットマスク",min:3,steps:[
+  {s:"今日はサブネットマスク。計算問題でよく出るよ"},
+  {s:"IPアドレスは、前半が「どのネットワーク」、後半が「その中のどのパソコン」"},
+  {s:"住所の「〇〇町」と「〇番地」みたいなもの。前半を <b>ネットワーク部</b>、後半を <b>ホスト部</b> っていう"},
+  {s:"その区切りを1と0で示すのが <b>サブネットマスク</b>。<span class=\"hl\">1のところがネットワーク部</span>"},
+  LQ("255.255.255.0 は、前から何ビットがネットワーク部？",["24","8","16","32"],0,"255は2進数で11111111（1が8個）。それが3つで24"),
+  {s:"これを短く <b>/24</b> と書く（CIDR表記）"},
+  {fig:"FIG:subnet"},
+  {s:"つなげる台数は、ホスト部のビットで作れる数から2を引く"},
+  {s:"ホスト部が全部0（ネットワークそのもの）と、全部1（全員あて＝ブロードキャスト）は使えないから"},
+  LQ("/24 のネットワークにつなげるパソコンは最大何台？",["254台","256台","255台","24台"],0,"ホスト部8ビットで256通り。2を引いて254台"),
+  LQ("サブネットマスクが 255.255.255.240 のとき、つなげるパソコンは最大何台？",["14台","16台","30台","254台"],0,"240＝11110000 で0が4個。2⁴＝16通りから2を引いて14台",null,{tag:"試験と同じ形",hint:"ヒント：240 は2進数で 11110000。0（ホスト部）は何個？"}),
+  {sum:["サブネットマスクの1＝ネットワーク部、0＝ホスト部","/24 は先頭24ビットがネットワーク部","台数＝2の（0の個数）乗 − 2"]}]},
+ {id:"nw-6",ch:"nw",sec:6,title:"グローバルIPとNAT",min:3,steps:[
+  {s:"IPアドレスには2種類ある"},
+  {s:"<b>グローバルIPアドレス</b>：インターネットで使う、世界で1つだけの住所"},
+  {s:"<b>プライベートIPアドレス</b>：家や会社のLANの中だけで自由に使える住所。192.168.〇.〇 など"},
+  LQ("家の中のLANで自由に使えるIPアドレスは？",["プライベートIPアドレス","グローバルIPアドレス","MACアドレス","ブロードキャストアドレス"],0,"LANの中だけ＝プライベート"),
+  {s:"外に出るときは、ルータがグローバルIPに変換する。これが <b>NAT</b>"},
+  {fig:"FIG:napt"},
+  {s:"ポート番号も一緒に変換して、1つのグローバルIPを何台もで共有するのが <b>NAPT</b>（IPマスカレード）"},
+  LQ("1つのグローバルIPアドレスを、ポート番号を使って複数の端末で共有するしくみは？",["NAPT","DHCP","DNS","ARP"],0,"ポート（Port）も変換する NAT＝NAPT"),
+  {s:"つないだ端末に、IPアドレスなどを<span class=\"hl\">自動で</span>割り当てるのが <b>DHCP</b>"},
+  LQ("PCをネットワークにつなぐと、IPアドレスなどの設定を自動で配るプロトコルは？",["DHCP","DNS","SMTP","NTP"],0,"自動で配る＝DHCP",null,{tag:"試験と同じ形"}),
+  {sum:["グローバル＝世界で1つ、プライベート＝LANの中だけ","NAT＝変換、NAPT＝ポート番号も使って共有","DHCP＝IPアドレスを自動で配る"]}]},
+ {id:"nw-7",ch:"nw",sec:7,title:"ドメイン名とDNS",min:2,steps:[
+  {s:"IPアドレスは数字だらけで覚えにくいよね"},
+  {s:"だから www.example.jp みたいな名前（<b>ドメイン名</b>）を付ける"},
+  {s:"名前を数字の住所に変換するのが <b>DNS</b>。ネットの電話帳だよ"},
+  {fig:"FIG:dns"},
+  LQ("ドメイン名とIPアドレスを対応付けるしくみは？",["DNS","DHCP","NAT","ARP"],0,"Domain Name System＝名前の電話帳"),
+  {s:"URL は「プロトコル://ドメイン名/ファイルの場所」"},
+  {s:"DNSの記録（レコード）も少し出る。メールの届け先サーバを示すのが <b>MX</b>"},
+  LQ("DNSで、そのドメインのメールを受け取るサーバを示すレコードは？",["MXレコード","Aレコード","CNAMEレコード","AAAAレコード"],0,"Mail eXchange＝MX。A は名前→IPv4アドレス",null,{tag:"試験と同じ形"}),
+  {sum:["DNS＝ドメイン名をIPアドレスに変換する","URL＝プロトコル://ドメイン名/場所","MXレコード＝メールの配送先"]}]},
+ {id:"nw-8",ch:"nw",sec:8,title:"プロトコルと中継機器",min:3,steps:[
+  {s:"通信の約束ごとを <b>プロトコル</b> っていう。共通の言葉みたいなもの"},
+  {s:"通信の働きを7つの層に分けたのが <b>OSI基本参照モデル</b>"},
+  {fig:"FIG:osidev"},
+  {s:"中継する機器は「どの層か」と「何を見るか」で覚える"},
+  {s:"<b>ルータ</b>：ネットワーク層。<span class=\"hl\">IPアドレス</span>を見て、別のネットワークへ送る"},
+  {s:"<b>スイッチングハブ</b>（ブリッジ）：データリンク層。<span class=\"hl\">MACアドレス</span>を見る"},
+  {s:"<b>リピータ</b>：物理層。弱くなった信号を増幅するだけ"},
+  LQ("IPアドレスを見て、別のネットワークへ中継する機器は？",["ルータ","スイッチングハブ","リピータ","ゲートウェイ"],0,"IPアドレス＝ネットワーク層＝ルータ"),
+  {s:"TCP と UDP の違いも定番。<b>TCP</b> は確認しながら確実に届ける。<b>UDP</b> は確認しない分速い"},
+  LQ("動画のライブ配信のように、多少欠けても速さを優先する通信に向くのは？",["UDP","TCP","SMTP","FTP"],0,"確認を待たずに送り続ける UDP が向いている"),
+  LQ("MACアドレスを見て、宛先がつながっているポートだけにデータを送る機器は？",["スイッチングハブ","ルータ","リピータ","モデム"],0,"MACアドレス＝データリンク層＝スイッチングハブ",null,{tag:"試験と同じ形"}),
+  {sum:["ルータ＝IPアドレス（ネットワーク層）","スイッチングハブ＝MACアドレス（データリンク層）、リピータ＝増幅だけ","TCP＝確実、UDP＝速い"]}]},
+ {id:"nw-9",ch:"nw",sec:9,title:"メールとWeb",min:3,steps:[
+  {s:"メールは、送るときと受け取るときでプロトコルがちがう"},
+  {fig:"FIG:mail"},
+  {s:"送信と転送は <b>SMTP</b>。受信は <b>POP</b> か <b>IMAP</b>"},
+  {s:"POP は自分の端末に取り込む。IMAP はサーバに置いたまま見る（スマホとPCで同じ状態）"},
+  LQ("メールをサーバに置いたまま、複数の端末で同じ状態を見られる受信プロトコルは？",["IMAP","POP3","SMTP","MIME"],0,"サーバに置いたまま＝IMAP"),
+  {s:"宛先：<b>To</b> は本来の相手、<b>Cc</b> は写し（全員にアドレスが見える）、<b>Bcc</b> は写し（<span class=\"hl\">ほかの人にアドレスが見えない</span>）"},
+  LQ("お互いに面識のない大勢に一斉に送るとき、アドレスを見せないために使う欄は？",["Bcc","Cc","To","件名"],0,"見えない写し＝Bcc"),
+  {s:"日本語や画像の添付ファイルを送るしくみが <b>MIME</b>"},
+  {s:"Webでは、サーバがブラウザに保存させる小さな情報が <b>Cookie</b>。ログイン状態を覚えるのに使う"},
+  LQ("メールで日本語や画像の添付ファイルを送るためのしくみは？",["MIME","SMTP","POP3","IMAP"],0,"添付や日本語＝MIME",null,{tag:"試験と同じ形"}),
+  {sum:["送信は SMTP、受信は POP（取り込む）か IMAP（サーバに置く）","Bcc はほかの受信者にアドレスが見えない","添付は MIME、ログイン状態の記憶は Cookie"]}]},
+ {id:"nw-10",ch:"nw",sec:10,title:"ネットワークの管理",min:2,steps:[
+  {s:"ネットワークの調子を調べるコマンドを3つだけ覚えよう"},
+  {s:"<b>ping</b>：相手に届くか確かめる。「おーい」と呼んで返事を待つ感じ"},
+  {s:"<b>traceroute</b>：途中でどのルータを通ったかを調べる"},
+  {s:"<b>nslookup</b>：DNSに名前を問い合わせる"},
+  LQ("あるサーバに通信が届くかどうかを確かめるコマンドは？",["ping","nslookup","traceroute","whois"],0,"返事が返ってくれば届いている＝ping"),
+  {s:"ネットワーク機器をまとめて見張るプロトコルが <b>SNMP</b>"},
+  {s:"機器を触らず、ネットワークの構成をソフトウェアでまとめて制御する考え方が <b>SDN</b>"},
+  LQ("ネットワーク機器の状態を監視・管理するためのプロトコルは？",["SNMP","SMTP","NTP","FTP"],0,"Simple Network Management Protocol＝SNMP（SMTP はメール）",null,{tag:"試験と同じ形"}),
+  {sum:["ping＝届くか確認、traceroute＝通った道、nslookup＝DNSに問い合わせ","SNMP＝機器の監視・管理"]}]}
+);
 
 /* ================= 起動 ================= */
 save(false); renderPill(); renderTimerBar();
