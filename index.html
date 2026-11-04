@@ -5864,17 +5864,16 @@ async function lzAsk(q){
 
 /* ホームに出す「会話で学ぶ」：今日（または明日）の範囲にある授業 */
 function lessonHomeHTML(){
+  // 出すのは「今日の範囲」か「明日の範囲（先取り）」の授業だけ。関係ない範囲の授業は出さない
   if(!LESSONS.length) return "";
-  const dp=dayPlan(), done=id=>(S.lessons||{})[id];
-  let list=LESSONS.filter(l=>dp.secs.some(s=>s.ch===l.ch&&s.i===l.sec)), label="今日の範囲を会話で";
-  const fin=l=>done(l.id)||secDone(l.ch+":"+l.sec);
-  if(list.length&&!list.every(fin)) return "";
-  if(list.length) list=[];
-  if(!list.length||list.every(l=>done(l.id))){ const t=addDays(today(),1), dp2=dayPlan(t), l2=LESSONS.filter(l=>dp2.secs.some(s=>s.ch===l.ch&&s.i===l.sec)&&!done(l.id)); if(l2.length){ list=l2; label="明日の範囲を会話で（先取り）"; } }
-  if(!list.length||list.every(l=>done(l.id))){ const rest=LESSONS.filter(l=>!done(l.id)&&!secDone(l.ch+":"+l.sec)); list=(rest.length?rest:LESSONS.filter(l=>!done(l.id))).slice(0,4); label="まだやっていない授業"; }
+  const dp=dayPlan(), done=id=>(S.lessons||{})[id], of=secs=>LESSONS.filter(l=>secs.some(s=>s.ch===l.ch&&s.i===l.sec));
+  const td=of(dp.secs);
+  // 今日の分がまだ残っていれば、ホームの「今日の範囲を読む」に並んでいるので、ここには出さない
+  if(td.some(l=>!done(l.id)&&!secDone(l.ch+":"+l.sec))) return "";
+  const ar=aheadRange(), list=of(ar);
   if(!list.length) return "";
-  return `<div class="panel lzhome"><div class="eyebrow">💬 会話で学ぶ ・ ${label}</div>
-    <p class="small-muted" style="margin:2px 0 8px">読むのがしんどい日は、先生との会話で。1本3分、最後までやると参考書を読んだことになります。</p>
+  return `<div class="panel lzhome"><div class="eyebrow">💬 会話で先取り ・ 明日の範囲</div>
+    <p class="small-muted" style="margin:2px 0 8px">今日の分は終わり。余裕があれば、明日読む${esc(rangeText(ar))}を会話で先に。最後までやると読んだことになり、明日の範囲が先へ進みます。</p>
     <div class="lzlist">${list.map(l=>{ const d=done(l.id); return `<button class="lzitem ${d?"done":""}" data-lesson="${l.id}"><span class="t">${d?"✓ ":""}${esc(l.title)}</span><span class="m">${d?`${d.score}/${d.total}問正解・もう一回`:`${l.min}分`}</span></button>`; }).join("")}</div></div>`;
 }
 
