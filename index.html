@@ -5783,7 +5783,7 @@ function openLesson(id){
 }
 function closeLesson(){ $("#lzv").hidden=true; document.body.style.overflow=""; LZ=null; if(current==="home") renderHome(); else if(current==="book") renderBook(); }
 const lzReduce=()=>matchMedia("(prefers-reduced-motion: reduce)").matches;
-function lzScroll(){ const c=$("#lz-chat"); c.scrollTo({top:c.scrollHeight,behavior:lzReduce()?"auto":"smooth"}); }
+function lzScroll(){ const c=$("#lz-chat"); c.scrollTo({top:c.scrollHeight,behavior:lzReduce()?"auto":"smooth"}); setTimeout(()=>{ if(c.scrollHeight-c.scrollTop-c.clientHeight<200) c.scrollTop=c.scrollHeight; },320); }
 function lzRow(html,who="t",cls=""){ const c=$("#lz-chat"), r=document.createElement("div");
   r.className="lzr "+(who==="me"?"me":"")+(who==="t"&&LZ.last==="t"?" cont":"");
   r.innerHTML=(who==="t"?`<div class="lzav" aria-hidden="true">先</div>`:"")+`<div class="lzb ${cls}">${html}</div>`;
@@ -5791,7 +5791,9 @@ function lzRow(html,who="t",cls=""){ const c=$("#lz-chat"), r=document.createEle
 function lzType(cb){ const c=$("#lz-chat"), r=document.createElement("div"); r.className="lzr"+(LZ.last==="t"?" cont":"");
   r.innerHTML=`<div class="lzav" aria-hidden="true">先</div><div class="lzb lztyping"><i></i><i></i><i></i></div>`; c.appendChild(r); lzScroll();
   setTimeout(()=>{ r.remove(); cb(); },lzReduce()?0:380); }
-function lzFoot(html){ const f=$("#lz-foot"); f.innerHTML=html; const b=f.querySelector("button"); if(b) b.focus({preventScroll:true}); }
+function lzFoot(html){ const f=$("#lz-foot"), c=$("#lz-chat"), near=c.scrollHeight-c.scrollTop-c.clientHeight<140; f.innerHTML=html; const b=f.querySelector("button"); if(b) b.focus({preventScroll:true});
+  // 下のボタンの高さが変わると会話の欄が狭くなり、最後の吹き出しがボタンに隠れるので、もう一度いちばん下まで送る
+  if(near) requestAnimationFrame(()=>{ c.scrollTop=c.scrollHeight; }); }
 function lzNext(label="つぎへ"){ lzFoot(`<button class="lzopt next" id="lz-nx">${label}</button><div class="lzhint">画面のどこをタップしても進みます</div>`); $("#lz-nx").onclick=lzStep; }
 function lzProg(){ $("#lz-bar").style.width=Math.round(LZ.i/LZ.L.steps.length*100)+"%"; }
 function lzAuto(){ const n=LZ.L.steps[LZ.i]; if(!n) return; if(n.fig){ lzStep(); return; } lzNext(); }
@@ -6181,21 +6183,33 @@ LESSONS.push(
   {fig:"FIG:ca"},
   LQ("デジタル署名を使うとわかることは？",["改ざんされていないことと、本人が送ったこと","内容を第三者に読まれていないこと","ウイルスが入っていないこと","相手に届いたこと"],0,"署名でわかるのは「改ざんなし」と「本人」。中身を秘密にする働きはない",null,{tag:"試験と同じ形"}),
   {sum:["署名は送信者の秘密鍵で作り、送信者の公開鍵で確かめる","わかるのは改ざんされていないことと本人であること（秘密にはならない）","公開鍵が本人のものだと保証するのが認証局（CA）のデジタル証明書"]}]},
- {id:"sec-4",ch:"sec",sec:4,title:"リスクマネジメント",min:3,steps:[
-  {s:"リスクをどう扱うかを決めて管理するのが <b>リスクマネジメント</b>"},
-  {s:"流れは、洗い出す（特定）→ 調べる（分析）→ 対応が必要か決める（評価）→ 対策（対応）"},
-  {s:"最初の3つをまとめて <b>リスクアセスメント</b> っていう"},
+ {id:"sec-4",ch:"sec",sec:4,title:"リスクマネジメント",min:5,steps:[
+  {s:"今日はリスクマネジメント。科目Aでも、科目Bの事例問題でもよく出るよ"},
+  {s:"リスクは「起きるかもしれない、よくないこと」。大きさは <b>起きやすさ × 起きたときの被害</b> で考える"},
+  {ask:["かけ算？","うん"],re:["そう。めったに起きなくても被害が大きいもの、被害は小さくてもしょっちゅう起きるもの、どっちも気をつけるんだ","この「起きやすさ×被害」が、あとで計算問題になるよ"]},
+  {s:"進め方は4段階。① <b>特定</b>（洗い出す）→ ② <b>分析</b>（起きやすさと被害を調べる）→ ③ <b>評価</b>（基準と比べて、対応するか・どれから手をつけるか決める）→ ④ <b>対応</b>"},
+  {s:"①〜③をまとめて <b>リスクアセスメント</b>。④の対応は入らないのが<span class=\"hl\">ひっかけ</span>"},
+  LQ("リスクアセスメントに含まれないものは？",["リスク対応","リスク特定","リスク分析","リスク評価"],0,"アセスメント＝特定・分析・評価の3つ。対応はその後",null,{hint:"ヒント：アセスメントは「見積もる」こと。まだ手は打たない"}),
   {fig:"FIG:riskmap"},
-  {s:"対応は4つ。ここがよく出る"},
-  {s:"<b>回避</b>：原因そのものをなくす（その仕事をやめる）"},
-  {s:"<b>低減</b>：対策して、起きる確率や被害を小さくする"},
-  {s:"<b>移転</b>：ほかに移す（<span class=\"hl\">保険に入る</span>、外部に任せる）"},
-  {s:"<b>受容</b>：影響が小さいので、そのまま受け入れる"},
-  LQ("情報漏えいに備えて、サイバー保険に加入した。リスク対応のどれ？",["リスク移転","リスク回避","リスク低減","リスク受容"],0,"保険で損害をほかに移す＝移転"),
-  LQ("個人情報を扱うリスクが大きいので、その業務自体をやめた。どれ？",["リスク回避","リスク移転","リスク低減","リスク受容"],0,"原因をなくす＝回避"),
-  {s:"災害が起きても大事な仕事を続けるための計画が <b>BCP</b>（事業継続計画）"},
-  LQ("ウイルス対策ソフトを導入して、感染する可能性を小さくした。リスク対応のどれ？",["リスク低減","リスク回避","リスク移転","リスク受容"],0,"対策して確率を下げる＝低減",null,{tag:"試験と同じ形"}),
-  {sum:["特定・分析・評価をまとめてリスクアセスメント","回避＝やめる、低減＝小さくする、移転＝保険など、受容＝受け入れる","災害でも仕事を続ける計画＝BCP"]}]},
+  {s:"図のように、起きやすさと被害の大きさで、どう対応するかが決まる"},
+  {s:"<b>回避</b>：原因そのものをなくす。その仕事をやめる、そのサービスを使わない"},
+  {s:"<b>低減</b>：対策をして、起きやすさか被害を小さくする。いちばん多いのがこれ"},
+  {s:"<b>移転</b>（共有）：ほかに肩代わりしてもらう。<span class=\"hl\">保険</span>や、外部への委託"},
+  {s:"<b>受容</b>（保有）：小さいリスクなので、何もしないで受け入れる。「何もしない」も立派な決定"},
+  LQ("情報漏えいに備えて、サイバー保険に加入した。どれ？",["リスク移転","リスク回避","リスク低減","リスク受容"],0,"お金の損をほかに肩代わりしてもらう＝移転"),
+  LQ("ノートPCの紛失に備えて、ディスクを暗号化した。どれ？",["リスク低減","リスク移転","リスク回避","リスク受容"],0,"なくすこと自体は防げないけど、なくしたときの被害を小さくする＝低減",null,{hint:"ヒント：紛失は起きるかもしれない。でも中身は読めない"}),
+  LQ("被害が小さく対策の費用のほうが高くつくので、特に対策しないことにした。どれ？",["リスク受容","リスク回避","リスク低減","リスク移転"],0,"わかったうえで受け入れる＝受容（保有）"),
+  {s:"よく迷うのが「外部に委託」。運用を専門の会社に任せて、事故の責任も契約で持ってもらうのは<span class=\"hl\">移転</span>"},
+  {s:"「その業務自体をやめる」なら回避。<span class=\"hl\">やめるか・人に任せるか</span>で見分けよう"},
+  {s:"次は計算。1年あたりに出そうな損失は「起きる確率 × 1回の損失額」"},
+  LQ("1年に起きる確率が0.2で、起きると500万円の損失になる。1年あたりの予想損失額は？",["100万円","500万円","250万円","2,500万円"],0,"0.2 × 500万 ＝ 100万円",null,{hint:"ヒント：確率 × 損失額"}),
+  {ask:["何に使うの？","なるほど"],re:["対策にいくらまでかけていいかの目安になる。年100万円の損に、年300万円の対策はかけすぎだよね","対策の費用と比べて、得かどうかを決めるんだ"]},
+  {s:"対策をしても、リスクはゼロにはならない。残ったものを <b>残留リスク</b> といって、経営者が受け入れるかどうかを判断する"},
+  {s:"もう一つ。地震や大規模な障害が起きても、大事な仕事を続けたり、早く戻したりする計画が <b>BCP</b>（事業継続計画）"},
+  {s:"BCPを作って、訓練や見直しで運用し続ける活動全体は <b>BCM</b>。P＝Plan（計画）、M＝Management（運用）"},
+  LQ("大地震で本社が使えなくなっても、重要な業務を続けるために、代わりの拠点や手順をあらかじめ決めておく計画は？",["BCP","ISMS","SLA","ペネトレーションテスト"],0,"事業（Business）を続ける（Continuity）計画（Plan）",null,{tag:"試験と同じ形"}),
+  LQ("リスク対応の組合せとして正しいものは？",["回避：リスクのある業務をやめる／移転：保険に入る","回避：保険に入る／移転：業務をやめる","低減：何もしない／受容：対策をする","受容：保険に入る／低減：業務をやめる"],0,"回避＝やめる、低減＝小さくする、移転＝保険・委託、受容＝そのまま",null,{tag:"試験と同じ形"}),
+  {sum:["リスクの大きさ＝起きやすさ × 被害。アセスメント＝特定・分析・評価（対応は入らない）","回避＝やめる、低減＝小さくする（暗号化も）、移転＝保険・委託、受容＝何もしない","予想損失額＝確率×損失額。残ったリスクは残留リスク","BCP＝事業を続ける計画、BCM＝それを運用する活動"]}]},
  {id:"sec-5",ch:"sec",sec:5,title:"機密性・完全性・可用性",min:2,steps:[
   {s:"情報セキュリティは、3つのことを守ること。頭文字で <b>CIA</b>"},
   {s:"<b>機密性</b>：許された人だけが見られる。こわれると「漏れる」"},
