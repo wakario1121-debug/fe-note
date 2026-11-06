@@ -158,6 +158,7 @@ main{max-width:1120px;margin:0 auto;padding:20px 16px 64px}
 .leftover ul{list-style:none;margin:8px 0 6px;padding:0;display:flex;flex-direction:column;gap:8px}
 .leftover li{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;font-size:14px}
 .leftover li input{width:20px;height:20px;margin:0}
+.task-at{display:block;font-size:11.5px;color:var(--muted);text-decoration:none}
 .leftover li.done label{color:var(--muted);text-decoration:line-through}
 .leftover .lt-wk{display:block;font-size:11.5px;color:var(--muted)}
 .chs-lbl{font-size:12px;color:var(--muted);margin-top:8px}
@@ -3620,7 +3621,7 @@ function mergeState(a,b){
   normBook(a); normBook(b); fixPsIds(a); fixPsIds(b);
   const newer=(a.updatedAt||0)>=(b.updatedAt||0)?a:b, older=newer===a?b:a;
   const o=Object.assign({},older,newer);
-  o.tasks=Object.assign({},older.tasks,newer.tasks);
+  o.tasks=Object.assign({},older.tasks,newer.tasks); o.taskAt=Object.assign({},older.taskAt,newer.taskAt);
   o.read=Object.assign({},older.read,newer.read);
   // 1問・1枚ごとに「あとで答えたほう」を残す（答えた時刻 → 日付 → 回数の順で比べる）
   const later=(x,y)=>{ if(!x) return y; if(!y) return x;
@@ -3955,6 +3956,13 @@ function leftHTML(){ try{
   return `<details class="leftover" open><summary>きのうまでの残り ${L.length}個</summary><ul>${L.map(t=>`<li><input type="checkbox" id="lt-${t.id}" data-lefttask="${t.id}" aria-label="やった"><label for="lt-${t.id}"><span class="lt-wk">${wl(t.w)}</span>${esc(t.t)}</label>${t.ch?`<button class="btn small" data-open-ch="${t.ch}">読む</button>`:t.q?`<button class="btn small" data-open-q="${t.q}">解く</button>`:t.go?`<button class="btn small" data-goto="${t.go}">過去問</button>`:""}</li>`).join("")}</ul>
     <div class="small-muted">終わったらチェック（まちがえたら、もう一度押すと戻せます。計画画面からも外せます）。解く・読むのタスクは、やれば自動で消えます</div></details>`;
 } catch(e){ return ""; } }
+function taskStamp(id,on){ S.taskAt=S.taskAt||{}; if(on) S.taskAt[id]=Date.now(); else delete S.taskAt[id]; }
+function taskAtText(id){ const d=new Date((S.taskAt||{})[id]); const p=n=>String(n).padStart(2,"0"); return `${d.getMonth()+1}/${d.getDate()} ${p(d.getHours())}:${p(d.getMinutes())}`; }
+// 今日チェックしたもの（まちがえたときに探せるように）
+function todayCheckedHTML(){ const at=S.taskAt||{}, td=today();
+  const L=WEEKS.flatMap(w=>w.tasks.map(t=>Object.assign({w:w.w},t))).filter(t=>at[t.id]&&S.tasks[t.id]===true&&dstr(new Date(at[t.id]))===td).sort((a,b)=>at[b.id]-at[a.id]);
+  if(!L.length) return "";
+  return `<details class="leftover"><summary>今日チェックしたもの ${L.length}個</summary><ul>${L.map(t=>`<li class="done"><input type="checkbox" checked id="ltc-${t.id}" data-lefttask="${t.id}" aria-label="チェックを外す"><label for="ltc-${t.id}"><span class="lt-wk">${wl(t.w)}・${taskAtText(t.id)}</span>${esc(t.t)}</label><span></span></li>`).join("")}</ul><div class="small-muted">まちがえてチェックしたものは、ここで外せます</div></details>`; }
 /* ================= 合格までの道筋 ================= */
 const STAGES=[
   {n:1,title:"基礎固め",weeks:[1,4],desc:"計算問題とアルゴリズムの土台。科目Bの擬似言語もここから始める",ch:["kiso","kiso2","algo","hw","sys","hwlogic","sw","db","hi"]},
@@ -4135,7 +4143,7 @@ function renderHome(){
         <div class="ring ${done?"done":""}"><svg viewBox="0 0 100 100"><circle class="tr" cx="50" cy="50" r="42" fill="none" stroke-width="10"/><circle class="fg" cx="50" cy="50" r="42" fill="none" stroke-width="10" stroke-linecap="round" stroke-dasharray="${C2.toFixed(1)}" stroke-dashoffset="${(C2*(1-prog)).toFixed(1)}"/></svg><b>${done?"✓":Math.round(prog*100)+"%"}</b></div>
         <div style="min-width:0"><div class="eyebrow">今日のミッション ・ ${now.getMonth()+1}月${now.getDate()}日（${wd[now.getDay()]}）</div><h2>${head}</h2></div>
       </div>
-      ${nextCard}${leftHTML()}
+      ${nextCard}${leftHTML()}${(()=>{ try{ return todayCheckedHTML(); }catch(e){ return ""; } })()}
       <div class="slots">
         <div class="slot ${ss.am?"ok compact":""} ${slotNow==="am"&&!ss.am?"now":""}">
           <div class="slot-h">${ck(ss.am)}<span class="when">朝</span><span class="dur">10分</span>${nowTag("am")}${ss.am?`<span class="done-note">完了 ・ カード${d.c}枚</span><button class="btn small" data-open-d="next">もっと</button>`:""}</div>
@@ -4238,7 +4246,7 @@ function renderHome(){
   $("#v-home").querySelectorAll("[data-night]").forEach(b=>b.addEventListener("click",()=>{S.nightLen=+b.dataset.night;save();renderHome();}));
   bindJumps($("#v-home")); bindMove($("#v-home"));
   // チェックしてもすぐには消さない（まちがえたら、もう一度押すと戻せる）。次にホームを開いたときに消える
-  $("#v-home").querySelectorAll("[data-lefttask]").forEach(cb=>cb.addEventListener("change",()=>{ S.tasks[cb.dataset.lefttask]=cb.checked; save(); if(cb.checked){ act("r"); toast("チェックしました。まちがえたら、もう一度押すと戻せます"); } cb.closest("li").classList.toggle("done",cb.checked); }));
+  $("#v-home").querySelectorAll("[data-lefttask]").forEach(cb=>cb.addEventListener("change",()=>{ S.tasks[cb.dataset.lefttask]=cb.checked; taskStamp(cb.dataset.lefttask,cb.checked); save(); if(cb.checked){ act("r"); toast("チェックしました。まちがえたら、もう一度押すと戻せます"); } cb.closest("li").classList.toggle("done",cb.checked); }));
 }
 
 /* ================= カリキュラム ================= */
@@ -4278,13 +4286,13 @@ function renderPlan(){
       <p class="goal">${esc(w.goal)}</p>
       <div>${w.tasks.map(t=>`<div class="task ${taskDone(t)?"done":""}">
           <input type="checkbox" id="task-${t.id}" data-task="${t.id}" ${taskDone(t)?"checked":""}>
-          <label for="task-${t.id}">${esc(t.t)}</label>
+          <label for="task-${t.id}">${esc(t.t)}${(S.taskAt||{})[t.id]&&S.tasks[t.id]===true?`<span class="task-at">${taskAtText(t.id)} チェック</span>`:""}</label>
           ${t.ch?`<button class="btn small go" data-open-ch="${t.ch}">読む</button>`:""}
           ${t.q?`<button class="btn small go" data-open-q="${t.q}">解く</button>`:""}
           ${t.go?`<button class="btn small go" data-goto="${t.go}">過去問</button>`:""}
         </div>`).join("")}</div></article>`;}).join("")}</div>`;
   $("#v-plan").querySelectorAll("[data-task]").forEach(cb=>cb.addEventListener("change",()=>{
-    S.tasks[cb.dataset.task]=cb.checked; save(); if(cb.checked) act("r");
+    S.tasks[cb.dataset.task]=cb.checked; taskStamp(cb.dataset.task,cb.checked); save(); if(cb.checked) act("r");
     cb.closest(".task").classList.toggle("done",cb.checked);
     const wk=cb.closest(".week"), all=wk.querySelectorAll("[data-task]");
     wk.querySelector(".pct").textContent=[...all].filter(x=>x.checked).length+"/"+all.length;
