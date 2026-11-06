@@ -161,6 +161,21 @@ main{max-width:1120px;margin:0 auto;padding:20px 16px 64px}
 .task-at{display:block;font-size:11.5px;color:var(--muted);text-decoration:none}
 .leftover li.done label{color:var(--muted);text-decoration:line-through}
 .leftover .lt-wk{display:block;font-size:11.5px;color:var(--muted)}
+.prv{position:fixed;inset:0;z-index:66;background:var(--bg);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px)}
+.prv-top{display:flex;align-items:center;gap:10px;padding:8px max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--line);background:var(--surface)}
+.prv-top .t{flex:1;min-width:0;font-weight:700;font-size:15.5px}
+.prv-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 16px 24px;max-width:640px;width:100%;margin:0 auto;box-sizing:border-box}
+.pr-list{margin:10px 0 0;padding-left:1.4em;display:flex;flex-direction:column;gap:12px}
+.pr-item{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.pr-item.ok{border-color:#1E8A55}.pr-item.ng{border-color:#C2452D}
+.pr-q{font-weight:700;margin-bottom:6px;line-height:1.6}
+.pr-a{background:var(--sunk);border-radius:10px;padding:8px 10px;margin:6px 0;line-height:1.7;overflow-x:auto}
+.pr-a .qcode{margin:4px 0}
+.qcode,.mono{font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0}
+.pr-mk{display:flex;gap:6px;flex-wrap:wrap}.pr-mk .on{background:var(--accent);color:var(--surface);border-color:var(--accent)}
+.pr-fig svg{display:block;width:100%;height:auto}
+.pr-score{font-weight:700;color:var(--accent);text-align:center}
+.prv-foot{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:10px 16px calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--surface)}
 .chs-lbl{font-size:12px;color:var(--muted);margin-top:8px}
 .st-left{margin-top:10px;border-top:1px dashed var(--line);padding-top:8px}
 .st-left summary{cursor:pointer;font-weight:700;font-size:14px}
@@ -667,6 +682,11 @@ pre.code{background:var(--code-bg);color:var(--code-ink);font-family:var(--f-mon
   <div class="lz-chat" id="lz-chat" aria-live="polite"></div>
   <div class="lz-askbar" id="lz-askbar" hidden><button class="btn small" id="lz-askbtn">？ わからない・きく</button></div>
   <div class="lz-foot" id="lz-foot"></div>
+</div>
+<div class="prv" id="prv" role="dialog" aria-modal="true" aria-labelledby="prv-title" hidden>
+  <div class="prv-top"><div class="t" id="prv-title">練習シート</div><button class="btn small" id="prv-close">とじる</button></div>
+  <div class="prv-body" id="prv-body"></div>
+  <div class="prv-foot" id="prv-foot"></div>
 </div>
 <div class="player" id="player" role="dialog" aria-modal="true" aria-labelledby="pl-title" hidden>
   <div class="pl-in">
@@ -3953,7 +3973,7 @@ function leftTasks(){
 }
 function leftHTML(){ try{
   const L=leftTasks(); if(!L.length) return "";
-  return `<details class="leftover" open><summary>きのうまでの残り ${L.length}個</summary><ul>${L.map(t=>`<li><input type="checkbox" id="lt-${t.id}" data-lefttask="${t.id}" aria-label="やった"><label for="lt-${t.id}"><span class="lt-wk">${wl(t.w)}</span>${esc(t.t)}</label>${t.ch?`<button class="btn small" data-open-ch="${t.ch}">読む</button>`:t.q?`<button class="btn small" data-open-q="${t.q}">解く</button>`:t.go?`<button class="btn small" data-goto="${t.go}">過去問</button>`:""}</li>`).join("")}</ul>
+  return `<details class="leftover" open><summary>きのうまでの残り ${L.length}個</summary><ul>${L.map(t=>`<li><input type="checkbox" id="lt-${t.id}" data-lefttask="${t.id}" aria-label="やった"><label for="lt-${t.id}"><span class="lt-wk">${wl(t.w)}</span>${esc(t.t)}</label>${t.ch?`<button class="btn small" data-open-ch="${t.ch}">読む</button>`:t.q?`<button class="btn small" data-open-q="${t.q}">解く</button>`:PRAC[t.id]?`<button class="btn small" data-prac="${t.id}">やる</button>`:t.go?`<button class="btn small" data-goto="${t.go}">過去問</button>`:""}</li>`).join("")}</ul>
     <div class="small-muted">終わったらチェック（まちがえたら、もう一度押すと戻せます。計画画面からも外せます）。解く・読むのタスクは、やれば自動で消えます</div></details>`;
 } catch(e){ return ""; } }
 function taskStamp(id,on){ S.taskAt=S.taskAt||{}; if(on) S.taskAt[id]=Date.now(); else delete S.taskAt[id]; }
@@ -4016,7 +4036,7 @@ function roadHTML(){
           <div class="bar"><i style="width:${pct(s.done,s.total)}%"></i></div><span class="small-muted mono">タスク ${s.done}/${s.total}</span>
           ${s.ch.length?`<div class="chs-lbl">参考書</div>`:""}<div class="chs">${s.ch.length?s.ch.map(id=>`<span class="${S.read[id]?"ok":""}">${S.read[id]?"✓ ":""}${esc(title(id))}</span>`).join(""):`<span>IPA公開問題</span><span>間違えた問題の総復習</span>`}</div>
           ${s.left.length?`<details class="st-left" ${s.state==="cur"?"open":""}><summary>のこりのタスク ${s.left.length}個${s.ch.length&&s.ch.every(id=>S.read[id])?"（参考書は読み終わり。あとは問題と手を動かす練習）":""}</summary>
-            <ul>${s.left.map(t=>`<li><span class="lt-wk">${wl(t.w)}</span><span class="lt-tx">${esc(t.t)}</span>${t.ch?`<button class="btn small" data-open-ch="${t.ch}">読む</button>`:t.q?`<button class="btn small" data-open-q="${t.q}">解く</button>`:t.go?`<button class="btn small" data-goto="${t.go}">過去問</button>`:`<a class="btn small" href="#wk-${t.w}" data-wk="${t.w}">チェック</a>`}</li>`).join("")}</ul></details>`:""}
+            <ul>${s.left.map(t=>`<li><span class="lt-wk">${wl(t.w)}</span><span class="lt-tx">${esc(t.t)}</span>${t.ch?`<button class="btn small" data-open-ch="${t.ch}">読む</button>`:t.q?`<button class="btn small" data-open-q="${t.q}">解く</button>`:PRAC[t.id]?`<button class="btn small" data-prac="${t.id}">やる</button>`:t.go?`<button class="btn small" data-goto="${t.go}">過去問</button>`:`<a class="btn small" href="#wk-${t.w}" data-wk="${t.w}">チェック</a>`}</li>`).join("")}</ul></details>`:""}
         </div></div>`).join("")}
         <div class="stage ${S.exam&&S.exam<=today()?"done":"todo"}"><span class="dot">受</span><div><h4>受験<span class="dt">${examDt}</span></h4><p>CBT方式。科目A（60問・90分）と科目B（20問・100分）</p></div></div>
         <div class="stage todo"><span class="dot">★</span><div><h4>合格</h4><p>科目A・科目Bともに 600点以上（1000点満点）</p></div></div>
@@ -4288,7 +4308,7 @@ function renderPlan(){
           <input type="checkbox" id="task-${t.id}" data-task="${t.id}" ${taskDone(t)?"checked":""}>
           <label for="task-${t.id}">${esc(t.t)}${(S.taskAt||{})[t.id]&&S.tasks[t.id]===true?`<span class="task-at">${taskAtText(t.id)} チェック</span>`:""}</label>
           ${t.ch?`<button class="btn small go" data-open-ch="${t.ch}">読む</button>`:""}
-          ${t.q?`<button class="btn small go" data-open-q="${t.q}">解く</button>`:""}
+          ${t.q?`<button class="btn small go" data-open-q="${t.q}">解く</button>`:""}${!t.ch&&!t.q&&PRAC[t.id]?`<button class="btn small go" data-prac="${t.id}">やる</button>`:""}
           ${t.go?`<button class="btn small go" data-goto="${t.go}">過去問</button>`:""}
         </div>`).join("")}</div></article>`;}).join("")}</div>`;
   $("#v-plan").querySelectorAll("[data-task]").forEach(cb=>cb.addEventListener("change",()=>{
@@ -7269,6 +7289,135 @@ LESSONS.push(
   {sum:["電子署名法、電子帳簿保存法、特定商取引法、景品表示法、独占禁止法","ISO＝国際、IEC＝電気・電子、IEEE＝LANなど、W3C＝Web、JIS＝日本"]}]}
 );
 Object.assign(LZF,{corp6:`<div class="lztbl"><table><tr><th>案＼景気</th><th>好況</th><th>不況</th></tr><tr><th>案A</th><td>100</td><td>−20</td></tr><tr><th>案B</th><td>60</td><td>20</td></tr><tr><th>案C</th><td>80</td><td>0</td></tr></table></div>`});
+
+
+/* ================= 練習シート（紙でやる計画タスクを、アプリの中でできるようにする） ================= */
+const PR_rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const PR_pick=a=>a[Math.floor(Math.random()*a.length)];
+const PR_b8=v=>((v+256)&255).toString(2).padStart(8,"0").replace(/(\d{4})(\d{4})/,"$1 $2");
+const PR_code=s=>`<pre class="qcode">${esc(s)}</pre>`;
+const PR_fix=(x,n=4)=>String(+x.toFixed(n));
+const PRAC={
+ "1b":{title:"2の補数とシフト演算（10問）",lead:"紙に計算してから「答えを見る」で確かめよう。8ビットで考えます。",gen:true,items(){
+   const out=[];
+   for(let k=0;k<4;k++){ const n=PR_rnd(3,120); const p=n.toString(2).padStart(8,"0");
+     out.push({q:`−${n} を8ビットの2の補数で表すと？`,a:`<b>${PR_b8(-n)}</b><br>${n} ＝ ${PR_b8(n)} → 0と1を反転 ${PR_b8(255-n)} → 1を足す`}); }
+   for(let k=0;k<3;k++){ const n=PR_rnd(3,120);
+     out.push({q:`8ビットの2の補数 <span class="mono">${PR_b8(-n)}</span> は10進数でいくつ？`,a:`<b>−${n}</b><br>先頭が1なので負の数。反転して1を足すと ${PR_b8(n)} ＝ ${n}`}); }
+   { const x=PR_rnd(3,40), k=PR_pick([1,2]); out.push({q:`<span class="mono">${PR_b8(x)}</span>（${x}）を<b>左に${k}ビット論理シフト</b>すると？`,a:`<b>${PR_b8((x<<k)&255)}</b>（${(x<<k)&255}）<br>左に1ビットずらすごとに2倍。あふれたビットは捨て、右に0を入れる`}); }
+   { const x=PR_rnd(16,120), k=PR_pick([1,2,3]); out.push({q:`<span class="mono">${PR_b8(x)}</span>（${x}）を<b>右に${k}ビット論理シフト</b>すると？`,a:`<b>${PR_b8(x>>k)}</b>（${x>>k}）<br>右に1ビットずらすごとに 1/2（小数は切り捨て）。左には0を入れる`}); }
+   { const n=PR_rnd(8,64), k=PR_pick([1,2]); const r=Math.floor(-n/2**k); out.push({q:`<span class="mono">${PR_b8(-n)}</span>（−${n}）を<b>右に${k}ビット算術シフト</b>すると？`,a:`<b>${PR_b8(r)}</b>（${r}）<br>算術シフトは符号ビットを残す。右シフトでは左に<b>符号ビットと同じ値（1）</b>を入れる`}); }
+   return out; }},
+ "1c":{title:"M/M/1 の待ち時間",lead:"公式：平均待ち時間 W ＝ ρ ÷（1−ρ）× 平均サービス時間。ρ（利用率）＝ 平均サービス時間 ÷ 平均到着間隔。",gen:true,items(){
+   const out=[[0.5,"1"],[0.75,"3"],[0.9,"9"]].map(([r,k])=>({q:`利用率 ρ＝${r} のとき、平均待ち時間は平均サービス時間の何倍？`,a:`<b>${k}倍</b>　${r}÷(1−${r})＝${k}`}));
+   const P=[[3,4],[4,5],[2,4],[9,10],[6,8],[1,2],[8,10],[3,5],[7,10],[12,16]]; const [s,a]=PR_pick(P), r=s/a, w=r/(1-r)*s;
+   out.push({q:`平均サービス時間 ${s}秒、平均到着間隔 ${a}秒。利用率 ρ は？`,a:`<b>${PR_fix(r)}</b>　${s}÷${a}`});
+   out.push({q:`同じ条件で、平均待ち時間は？`,a:`<b>${PR_fix(w,2)}秒</b>　${PR_fix(r)}÷(1−${PR_fix(r)})×${s}`});
+   out.push({q:`同じ条件で、平均応答時間（待ち時間＋サービス時間）は？`,a:`<b>${PR_fix(w+s,2)}秒</b>　${PR_fix(w,2)}＋${s}`});
+   return out; }},
+ "2b":{title:"擬似言語の記法",lead:"書き方を思い出してから「答えを見る」。科目Bの問題文の先頭にも記法の表があるよ。",items(){ return [
+   {q:"変数 x に 5 を代入する書き方は？",a:PR_code("x ← 5")},
+   {q:"整数型の変数 n を宣言する書き方は？",a:PR_code("整数型: n")},
+   {q:"手続や関数の宣言を表す記号は？",a:PR_code("○整数型: max(整数型: a, 整数型: b)")+"先頭の ○ が宣言のしるし"},
+   {q:"注釈（コメント）の書き方は？",a:PR_code("/* 注釈 */")+"または // 注釈"},
+   {q:"条件で処理を分ける書き方（3つに分ける）は？",a:PR_code("if (条件1)\n  処理1\nelseif (条件2)\n  処理2\nelse\n  処理3\nendif")},
+   {q:"条件が成り立つ間くり返す（前判定）は？",a:PR_code("while (条件)\n  処理\nendwhile")},
+   {q:"1回処理してから条件を調べてくり返す（後判定）は？",a:PR_code("do\n  処理\nwhile (条件)")},
+   {q:"i を 1 から n まで1ずつ増やしてくり返す書き方は？",a:PR_code("for (i を 1 から n まで 1 ずつ増やす)\n  処理\nendfor")},
+   {q:"配列の要素番号は、ふつう何から始まる？",a:"<b>1から</b>（問題文に書いてある。0から始まる問題もあるので注意）。要素の数は 配列名の要素数"},
+   {q:"演算子の優先順位（高い順）は？",a:"<b>not ＞ × ÷ mod ＞ ＋ − ＞ 比較（＝ ≠ ＞ ≧ ＜ ≦）＞ and ＞ or</b>"},
+   {q:"「何も入っていない」を表す値は？",a:"<b>未定義</b>（未定義の値）"}]; }},
+ "2c":{title:"3つのソートを書いてトレース",lead:"まず紙に擬似言語で書いてみよう。そのあと、トレース（値の動きを追う）の問題。配列は毎回変わります。",gen:true,items(){
+   const A=[]; while(A.length<5){ const x=PR_rnd(1,9); if(!A.includes(x)) A.push(x); }
+   const bub=[...A]; for(let j=0;j<bub.length-1;j++) if(bub[j]>bub[j+1]) [bub[j],bub[j+1]]=[bub[j+1],bub[j]];
+   const sel=[...A]; for(let i=0;i<2;i++){ let m=i; for(let j=i+1;j<sel.length;j++) if(sel[j]<sel[m]) m=j; [sel[i],sel[m]]=[sel[m],sel[i]]; }
+   const ins=[...A]; for(let i=1;i<3;i++){ const v=ins[i]; let j=i-1; while(j>=0&&ins[j]>v){ ins[j+1]=ins[j]; j--; } ins[j+1]=v; }
+   const s=a=>"{"+a.join(", ")+"}";
+   return [
+   {q:"<b>バブルソート</b>（昇順）を擬似言語で書こう。隣どうしを比べて、大きいほうを後ろへ",a:PR_code("for (i を 要素数 から 2 まで 1 ずつ減らす)\n  for (j を 1 から i − 1 まで 1 ずつ増やす)\n    if (a[j] > a[j + 1])\n      tmp ← a[j]\n      a[j] ← a[j + 1]\n      a[j + 1] ← tmp\n    endif\n  endfor\nendfor")},
+   {q:"<b>選択ソート</b>（昇順）を擬似言語で書こう。残りの中の最小値を探して、先頭と交換",a:PR_code("for (i を 1 から 要素数 − 1 まで 1 ずつ増やす)\n  min ← i\n  for (j を i + 1 から 要素数 まで 1 ずつ増やす)\n    if (a[j] < a[min])\n      min ← j\n    endif\n  endfor\n  tmp ← a[i]\n  a[i] ← a[min]\n  a[min] ← tmp\nendfor")},
+   {q:"<b>挿入ソート</b>（昇順）を擬似言語で書こう。整列済みの部分の正しい位置に差し込む",a:PR_code("for (i を 2 から 要素数 まで 1 ずつ増やす)\n  v ← a[i]\n  j ← i − 1\n  while (j ≧ 1 and a[j] > v)\n    a[j + 1] ← a[j]\n    j ← j − 1\n  endwhile\n  a[j + 1] ← v\nendfor")},
+   {q:`配列 ${s(A)} にバブルソート（昇順）の<b>1周目</b>（先頭から最後まで1回比べる）を行うと？`,a:`<b>${s(bub)}</b><br>1周目が終わると、いちばん大きい値が最後に来る`},
+   {q:`配列 ${s(A)} に選択ソート（昇順）を<b>2回目の交換まで</b>行うと？`,a:`<b>${s(sel)}</b><br>先頭から2つが、小さい順に確定する`},
+   {q:`配列 ${s(A)} に挿入ソート（昇順）で<b>3つ目の要素まで</b>差し込むと？`,a:`<b>${s(ins)}</b><br>先頭から3つが整列済みになる`}]; }},
+ "2e":{title:"科目Bのアルゴリズム問題を2問",lead:"IPAのサンプル問題（IPAのサイトで「基本情報 科目B サンプル問題」）が本番にいちばん近い。アプリの擬似言語の問題でも練習できるよ。",items(){ return [
+   {q:"アプリの擬似言語の問題を解く（毎回ちがう問題）",btn:["擬似言語の問題を開く",()=>{ startQuiz("pseudo"); show("quiz"); }]},
+   {q:"解くときのコツは？",a:"① 変数の表を紙に書く ② 1行ずつ値を追う（トレース）③ ループは1周目と2周目を丁寧に。<br>1問 5分 が目安。時間を計ってみよう"}]; }},
+ "3c":{title:"稼働率の問題（5問）",lead:"直列 ＝ かけ算。並列 ＝ 1 −（1−A）×（1−B）。紙に計算してから確かめよう。数字は毎回変わります。",gen:true,items(){
+   const V=[0.8,0.9,0.95,0.98,0.7], p=()=>PR_pick(V);
+   const out=[]; { const a=p(),b=p(); out.push({q:`稼働率 ${a} の装置と ${b} の装置を<b>直列</b>につないだ。全体の稼働率は？`,a:`<b>${PR_fix(a*b)}</b>　${a}×${b}`}); }
+   { const a=p(),b=p(); out.push({q:`稼働率 ${a} の装置と ${b} の装置を<b>並列</b>につないだ（どちらかが動けばよい）。全体の稼働率は？`,a:`<b>${PR_fix(1-(1-a)*(1-b))}</b>　1−(1−${a})×(1−${b})`}); }
+   { const a=p(),b=p(); const par=1-(1-b)**2; out.push({q:`稼働率 ${a} の装置Aのあとに、稼働率 ${b} の装置Bを<b>2台並列</b>にしたものを直列につないだ。全体の稼働率は？`,a:`<b>${PR_fix(a*par)}</b>　B2台並列 ＝ 1−(1−${b})² ＝ ${PR_fix(par)}、それに ${a} をかける`}); }
+   { const a=p(); const s=a*a; out.push({q:`稼働率 ${a} の装置を2台<b>直列</b>にした系を、さらに2組<b>並列</b>にした。全体の稼働率は？`,a:`<b>${PR_fix(1-(1-s)**2)}</b>　直列1組 ＝ ${a}² ＝ ${PR_fix(s)}、2組並列 ＝ 1−(1−${PR_fix(s)})²`}); }
+   { const a=p(); out.push({q:`稼働率 ${a} の装置を<b>3台並列</b>にした。全体の稼働率は？`,a:`<b>${PR_fix(1-(1-a)**3,6)}</b>　1−(1−${a})³`}); }
+   return out; }},
+ "4c":{title:"SQLを5本書く",lead:"下の表を使って、紙にSQLを書いてから「答えを見る」。",table:`<div class="qtbl"><table><caption>社員</caption><tr><th>社員番号</th><th>氏名</th><th>部署</th><th>給与</th><th>入社年</th></tr><tr><td>1001</td><td>佐藤</td><td>営業</td><td class="num">280000</td><td>2018</td></tr><tr><td>1002</td><td>鈴木</td><td>開発</td><td class="num">350000</td><td>2015</td></tr><tr><td>1003</td><td>高橋</td><td>営業</td><td class="num">320000</td><td>2020</td></tr><tr><td>1004</td><td>田中</td><td>総務</td><td class="num">260000</td><td>2022</td></tr><tr><td>1005</td><td>伊藤</td><td>開発</td><td class="num">410000</td><td>2012</td></tr></table></div>`,items(){ return [
+   {q:"① 営業部の社員の 氏名 と 給与 を出す",a:PR_code("SELECT 氏名, 給与\nFROM 社員\nWHERE 部署 = '営業'")+"文字は ' ' でかこむ"},
+   {q:"② 給与の高い順に、全社員の 氏名 と 給与 を並べる",a:PR_code("SELECT 氏名, 給与\nFROM 社員\nORDER BY 給与 DESC")+"高い順＝DESC（降順）、低い順＝ASC（省略可）"},
+   {q:"③ 部署ごとの人数を出す",a:PR_code("SELECT 部署, COUNT(*)\nFROM 社員\nGROUP BY 部署")+"GROUP BY でまとめた列だけを SELECT に書ける"},
+   {q:"④ 部署ごとの平均給与が 300000 以上の部署を出す",a:PR_code("SELECT 部署, AVG(給与)\nFROM 社員\nGROUP BY 部署\nHAVING AVG(給与) >= 300000")+"<b>グループの条件は HAVING</b>、行の条件は WHERE。答えは 営業(300000)・開発(380000)"},
+   {q:"⑤ 2015年以降に入社した社員について、部署ごとの最高給与を、最高給与の高い順に出す",a:PR_code("SELECT 部署, MAX(給与)\nFROM 社員\nWHERE 入社年 >= 2015\nGROUP BY 部署\nORDER BY MAX(給与) DESC")+"書く順番：SELECT → FROM → WHERE → GROUP BY → HAVING → ORDER BY"}]; }},
+ "5b":{title:"OSI参照モデルを書けるようにする",lead:"層の番号から、名前と代表例を言えるように。紙に7層の表を書いてから確かめよう。",items(){ return [
+   [7,"アプリケーション層","HTTP・SMTP・DNS などアプリの約束ごと／ゲートウェイ"],[6,"プレゼンテーション層","文字コードや圧縮など、データの表現形式"],[5,"セション層","通信の開始から終了までの手順"],
+   [4,"トランスポート層","TCP・UDP。確実に届けるか（ポート番号）"],[3,"ネットワーク層","IP。宛先までの経路を選ぶ／<b>ルータ</b>（IPアドレス）"],[2,"データリンク層","隣の機器までの転送／<b>スイッチングハブ・ブリッジ</b>（MACアドレス）"],[1,"物理層","電気信号・ケーブル／<b>リピータ</b>"]].map(([n,nm,ex])=>({q:`第${n}層は？`,a:`<b>${nm}</b><br>${ex}`})).concat([{q:"覚え方は？",a:"上から「ア・プ・セ・ト・ネ・デ・ブ」"}]); }},
+ "5c":{title:"/24〜/30 のホスト数を暗算",lead:"ホスト数 ＝ 2の（32 − プレフィックス）乗 − 2。順番は毎回変わります。",gen:true,items(){
+   return shuffle([24,25,26,27,28,29,30]).map(n=>{ const h=32-n, m=256-2**h; return {q:`/${n}（255.255.255.${n===24?0:m}）で割り当てられるホストは何台？`,a:`<b>${2**h-2}台</b>　ホスト部 ${h}ビット → 2^${h}−2`}; }); }},
+ "6b":{title:"デジタル署名の鍵",lead:"紙に、送信者・受信者・ハッシュ値・鍵の流れを図に描いて、人に説明するつもりで確かめよう。",items(){ return [
+   {q:"署名を<b>作る</b>ときに使う鍵は？",a:"<b>送信者の秘密鍵</b>（本人しか持っていない）"},
+   {q:"署名を<b>確かめる</b>ときに使う鍵は？",a:"<b>送信者の公開鍵</b>"},
+   {q:"AさんからBさんへ<b>暗号化</b>して送るときに使う鍵は？",a:"<b>Bさん（受信者）の公開鍵</b>。復号は Bさんの秘密鍵"},
+   {q:"ハッシュ値は何のために使う？",a:"受信者が自分でもハッシュ値を作って比べ、<b>改ざんされていないか</b>を確かめるため"},
+   {q:"署名の流れを図にすると？",a:(typeof FIG!=="undefined"&&FIG.sign)?`<div class="pr-fig">${FIG.sign}</div>`:""},
+   {q:"その公開鍵が本人のものだと保証するのは？",a:"<b>認証局（CA）</b>が発行するデジタル証明書"}]; }},
+ "6d":{title:"セキュリティの問題を全問",lead:"IPAのサンプル問題（IPAのサイトで「基本情報 科目B サンプル問題」）のセキュリティの問題が本番に近い。アプリの問題でも練習できるよ。",items(){ return [
+   {q:"アプリの情報セキュリティの問題を全部解く",btn:["情報セキュリティの問題を開く",()=>{ startQuiz("sec"); show("quiz"); }]},
+   {q:"科目Bのセキュリティの解き方は？",a:"事例文から「誰が・何を守るために・何をするか」を拾う。用語の暗記より、本文に書いてある条件に合う対策を選ぶ"}]; }},
+ "6e":{title:"AIの用語の復習",lead:"会話の授業で復習してから、確かめよう。",items(){ return [
+   {q:"会話の授業「AIと機械学習」",btn:["授業を開く",()=>openLesson("kiso2-4")]},
+   {q:"会話の授業「生成AIと基盤モデル」",btn:["授業を開く",()=>openLesson("kiso2-5")]},
+   {q:"正解データを与える学習は？",a:"<b>教師あり学習</b>（回帰・分類）"},
+   {q:"データだけを与えて、似たものをまとめる学習は？",a:"<b>教師なし学習</b>（クラスタリング）"},
+   {q:"報酬が最大になるように試行錯誤する学習は？",a:"<b>強化学習</b>"},
+   {q:"生成AIがもっともらしいウソを答える現象は？",a:"<b>ハルシネーション</b>"}]; }},
+ "7d":{title:"暗記カードを全分野1周",lead:"全分野のカードを順番に回そう。1回で終わらなくても大丈夫。",items(){ return [
+   {q:"全分野のカードを回す",btn:["カードを開く",()=>{ startDeck("all",false); show("cards"); }]}]; }},
+ "8a":{title:"科目Aを時間を計って解く（60問・90分）",lead:"本番と同じ時間で。IPAの公開問題を使うよ。",items(){ return [
+   {q:"タイマーを始める",btn:["90分のつもりでタイマー開始",()=>startTimer()]},
+   {q:"過去問を開く",btn:["過去問の画面へ",()=>show("past")]},
+   {q:"終わったら",a:"答え合わせをして、まちがえた分野を「演習」でもう一度。600点（だいたい6割）が合格ライン"}]; }},
+ "8b":{title:"科目Bを時間を計って解く（20問・100分）",lead:"IPAのサイトで「基本情報 科目B サンプル問題」か公開問題を使おう。1問5分が目安。",items(){ return [
+   {q:"タイマーを始める",btn:["100分のつもりでタイマー開始",()=>startTimer()]},
+   {q:"解くときのコツは？",a:"1問5分を超えたら印をつけて次へ。最後に戻る。変数の表を紙に書いてトレース"},
+   {q:"終わったら",a:"まちがえた問題は、アプリの擬似言語の問題で同じ形を練習しよう"}]; }},
+ "8d":{title:"まだ覚えていない札だけを回す",lead:"覚えていない札だけを集中して回そう。",items(){ return [
+   {q:"まだ覚えていない札を回す",btn:["カードを開く",()=>{ startDeck("all",true); show("cards"); }]}]; }},
+ "8e":{title:"受験の準備",lead:"1つずつ確かめてチェックしよう。",items(){ return [
+   {q:"受験日と時刻、会場（テストセンター）の場所を確かめた",a:"確認メールか、受験の申込みサイトのマイページで見られる"},
+   {q:"本人確認書類（顔写真付き：運転免許証・マイナンバーカードなど）を用意した",a:"<b>忘れると受験できない</b>。有効期限も確かめよう"},
+   {q:"会場までの行き方と、かかる時間を調べた",a:"開始の15〜30分前には着くように"},
+   {q:"持ち込みのルールを確かめた",a:"電卓やスマホは使えない。メモ用紙と筆記用具は会場で貸してもらえることが多い（受験案内で確認）"}]; }}
+};
+let PRV=null;
+function pracFor(t){ return t&&PRAC[t.id]?t.id:null; }
+function openPrac(id){ const P=PRAC[id]; if(!P) return; PRV={id,items:P.items(),open:{},mark:{}}; $("#prv").hidden=false; document.body.style.overflow="hidden"; renderPrac(); }
+function closePrac(){ $("#prv").hidden=true; document.body.style.overflow=""; PRV=null; }
+function renderPrac(){ const P=PRAC[PRV.id], it=PRV.items;
+  $("#prv-title").textContent=P.title;
+  const nA=it.filter(x=>x.a).length, nOk=Object.values(PRV.mark).filter(v=>v==="ok").length, nNg=Object.values(PRV.mark).filter(v=>v==="ng").length;
+  $("#prv-body").innerHTML=`<p class="small-muted">${P.lead}</p>${P.table||""}<ol class="pr-list">${it.map((x,i)=>`<li class="pr-item ${PRV.mark[i]||""}"><div class="pr-q">${x.q}</div>
+    ${x.btn?`<button class="btn small" data-pr-btn="${i}">${esc(x.btn[0])}</button>`:""}
+    ${x.a?(PRV.open[i]?`<div class="pr-a">${x.a}</div><div class="pr-mk"><button class="btn small ${PRV.mark[i]==="ok"?"on":""}" data-pr-mk="${i}:ok">○ できた</button><button class="btn small ${PRV.mark[i]==="ng"?"on":""}" data-pr-mk="${i}:ng">× まちがえた</button></div>`:`<button class="btn small" data-pr-open="${i}">答えを見る</button>`):""}</li>`).join("")}</ol>
+    ${nA?`<p class="pr-score">○ ${nOk}　× ${nNg}　／ ${nA}問</p>`:""}`;
+  $("#prv-foot").innerHTML=`${P.gen?`<button class="btn" id="prv-new">ちがう問題にする</button>`:""}<button class="btn primary" id="prv-done">${taskDone({id:PRV.id})?"もう一度チェック済みにする":"やった！（チェックをつける）"}</button>`;
+  $("#prv-body").querySelectorAll("[data-pr-open]").forEach(b=>b.addEventListener("click",()=>{ PRV.open[b.dataset.prOpen]=1; renderPrac(); }));
+  $("#prv-body").querySelectorAll("[data-pr-mk]").forEach(b=>b.addEventListener("click",()=>{ const [i,v]=b.dataset.prMk.split(":"); PRV.mark[i]=v; renderPrac(); }));
+  $("#prv-body").querySelectorAll("[data-pr-btn]").forEach(b=>b.addEventListener("click",()=>{ const f=PRV.items[+b.dataset.prBtn].btn[1]; closePrac(); f(); }));
+  const nw=$("#prv-new"); if(nw) nw.addEventListener("click",()=>{ PRV.items=P.items(); PRV.open={}; PRV.mark={}; renderPrac(); $("#prv-body").scrollTop=0; });
+  $("#prv-done").addEventListener("click",()=>{ const id=PRV.id; S.tasks[id]=true; taskStamp(id,true); save(); act("r"); closePrac(); toast("チェックしました"); show(current); });
+}
+$("#prv-close").addEventListener("click",closePrac);
+document.addEventListener("keydown",e=>{ if(PRV&&e.key==="Escape") closePrac(); });
+document.addEventListener("click",e=>{ const b=e.target.closest&&e.target.closest("[data-prac]"); if(!b) return; e.preventDefault(); openPrac(b.dataset.prac); },true);
 
 /* ================= 起動 ================= */
 save(false); renderPill(); renderTimerBar();
