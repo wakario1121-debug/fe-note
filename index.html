@@ -153,6 +153,12 @@ main{max-width:1120px;margin:0 auto;padding:20px 16px 64px}
 .chs span{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:1px 8px}
 .chs span.ok{background:var(--ok-soft);border-color:transparent}
 .stage h4{word-break:keep-all;overflow-wrap:anywhere}
+.leftover{margin:10px 0 4px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--bg)}
+.leftover summary{cursor:pointer;font-weight:700;font-size:14.5px}
+.leftover ul{list-style:none;margin:8px 0 6px;padding:0;display:flex;flex-direction:column;gap:8px}
+.leftover li{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;font-size:14px}
+.leftover li input{width:20px;height:20px;margin:0}
+.leftover .lt-wk{display:block;font-size:11.5px;color:var(--muted)}
 .chs-lbl{font-size:12px;color:var(--muted);margin-top:8px}
 .st-left{margin-top:10px;border-top:1px dashed var(--line);padding-top:8px}
 .st-left summary{cursor:pointer;font-weight:700;font-size:14px}
@@ -3934,6 +3940,20 @@ function stepLessons(secs){ try{
   const done=id=>(S.lessons||{})[id];
   return `<div class="step-lz"><span class="lbl">💬 会話で読む（最後までやると読んだことに）</span>${L.map(({s,l})=>{ const d=done(l.id), rd=secDone(s.k); return `<button class="lzitem ${d||rd?"done":""}" data-lesson="${l.id}"><span class="t">${d||rd?"✓ ":""}${esc(l.title)}${lzPart(l)}</span><span class="m">${d?`${d.score}/${d.total}問・もう一回`:rd?"読んだ・会話でも":`${l.min}分`}</span></button>`; }).join("")}</div>`;
 } catch(e){ return ""; } }
+// きのうまでの残り：今の週で今日より前の日に割り当てたタスクと、前の週のタスクのうち、終わっていないもの
+function leftTasks(){
+  const pp=planPos(); if(pp.before) return [];
+  const w=Math.min(pp.w,WEEKS.length), day=pp.over?99:pp.day, out=[];
+  const prev=WEEKS[w-2]; if(prev) prev.tasks.forEach(t=>{ if(!taskDone(t)) out.push(Object.assign({w:prev.w},t)); });
+  const cur=WEEKS[w-1], L=schedule()[w-1].len;
+  if(cur) cur.tasks.forEach((t,i)=>{ const d=Math.min(L,Math.floor(i*L/cur.tasks.length)+1); if(d<day&&!taskDone(t)) out.push(Object.assign({w:cur.w},t)); });
+  return out;
+}
+function leftHTML(){ try{
+  const L=leftTasks(); if(!L.length) return "";
+  return `<details class="leftover" open><summary>きのうまでの残り ${L.length}個</summary><ul>${L.map(t=>`<li><input type="checkbox" id="lt-${t.id}" data-lefttask="${t.id}" aria-label="やった"><label for="lt-${t.id}"><span class="lt-wk">${wl(t.w)}</span>${esc(t.t)}</label>${t.ch?`<button class="btn small" data-open-ch="${t.ch}">読む</button>`:t.q?`<button class="btn small" data-open-q="${t.q}">解く</button>`:t.go?`<button class="btn small" data-goto="${t.go}">過去問</button>`:""}</li>`).join("")}</ul>
+    <div class="small-muted">終わったらチェック。解く・読むのタスクは、やれば自動で消えます</div></details>`;
+} catch(e){ return ""; } }
 /* ================= 合格までの道筋 ================= */
 const STAGES=[
   {n:1,title:"基礎固め",weeks:[1,4],desc:"計算問題とアルゴリズムの土台。科目Bの擬似言語もここから始める",ch:["kiso","kiso2","algo","hw","sys","hwlogic","sw","db","hi"]},
@@ -4114,7 +4134,7 @@ function renderHome(){
         <div class="ring ${done?"done":""}"><svg viewBox="0 0 100 100"><circle class="tr" cx="50" cy="50" r="42" fill="none" stroke-width="10"/><circle class="fg" cx="50" cy="50" r="42" fill="none" stroke-width="10" stroke-linecap="round" stroke-dasharray="${C2.toFixed(1)}" stroke-dashoffset="${(C2*(1-prog)).toFixed(1)}"/></svg><b>${done?"✓":Math.round(prog*100)+"%"}</b></div>
         <div style="min-width:0"><div class="eyebrow">今日のミッション ・ ${now.getMonth()+1}月${now.getDate()}日（${wd[now.getDay()]}）</div><h2>${head}</h2></div>
       </div>
-      ${nextCard}
+      ${nextCard}${leftHTML()}
       <div class="slots">
         <div class="slot ${ss.am?"ok compact":""} ${slotNow==="am"&&!ss.am?"now":""}">
           <div class="slot-h">${ck(ss.am)}<span class="when">朝</span><span class="dur">10分</span>${nowTag("am")}${ss.am?`<span class="done-note">完了 ・ カード${d.c}枚</span><button class="btn small" data-open-d="next">もっと</button>`:""}</div>
@@ -4216,6 +4236,7 @@ function renderHome(){
   }));
   $("#v-home").querySelectorAll("[data-night]").forEach(b=>b.addEventListener("click",()=>{S.nightLen=+b.dataset.night;save();renderHome();}));
   bindJumps($("#v-home")); bindMove($("#v-home"));
+  $("#v-home").querySelectorAll("[data-lefttask]").forEach(cb=>cb.addEventListener("change",()=>{ if(!cb.checked) return; S.tasks[cb.dataset.lefttask]=true; save(); act("r"); setTimeout(()=>renderHome(),350); }));
 }
 
 /* ================= カリキュラム ================= */
