@@ -5585,20 +5585,39 @@ document.addEventListener("click",e=>{ const b=e.target.closest&&e.target.closes
 
 /* ================= 動画ファイルを取り込んで、アプリの中で見る ================= */
 // 利用者が持っている動画ファイルを、この端末の中（IndexedDB）にだけ保存する。保存できなくても、今開いている間は見られる
-const VV={blob:null,url:null,name:"",pending:null,loading:null,saved:false};
-function vvLoad(){ if(VV.blob) return Promise.resolve(true);
-  if(!VV.loading) VV.loading=bkDB().then(db=>new Promise(res=>{ const t=db.transaction("f").objectStore("f").get("video12"); t.onsuccess=()=>{ const v=t.result; if(v&&v.blob){ VV.blob=v.blob; VV.name=v.name||""; VV.saved=true; res(true); } else res(false); }; t.onerror=()=>res(false); })).catch(()=>false).finally(()=>{ VV.loading=null; });
+const VV={blob:null,url:null,name:"",pending:null,loading:null,saved:false,parts:[],cur:0};
+const vvKey=i=>i?"video12-"+(i+1):"video12";
+function bkGet(key){ return bkDB().then(db=>new Promise(res=>{ const t=db.transaction("f").objectStore("f").get(key); t.onsuccess=()=>res(t.result||null); t.onerror=()=>res(null); })).catch(()=>null); }
+function bkDel(key){ return bkDB().then(db=>new Promise(res=>{ const tx=db.transaction("f","readwrite"); tx.objectStore("f").delete(key); tx.oncomplete=()=>res(); tx.onerror=()=>res(); })).catch(()=>{}); }
+function vvLoad(){ if(VV.parts.length) return Promise.resolve(true);
+  if(!VV.loading) VV.loading=(async()=>{ const P=[]; for(let i=0;i<12;i++){ const v=await bkGet(vvKey(i)); if(!v||!v.blob) break; P.push({blob:v.blob,name:v.name||"",dur:v.dur||null,key:vvKey(i)}); }
+    VV.parts=P; if(!P.length) return false; vvUse(0); VV.saved=true;
+    for(const p of P) if(!p.dur){ p.dur=await mp4Dur(p.blob); if(p.dur){ const v=await bkGet(p.key); if(v){ v.dur=p.dur; bkPut(p.key,v).catch(()=>{}); } } }
+    return true; })().catch(()=>false).finally(()=>{ VV.loading=null; });
   return VV.loading; }
+function vvUse(i){ if(VV.url){ URL.revokeObjectURL(VV.url); VV.url=null; } const p=VV.parts[i]; VV.cur=i; VV.blob=p?p.blob:null; VV.name=p?p.name:""; }
+// i番目のファイルが、通しの時間の何秒目から始まるか
+function vvOff(i){ let s=0; for(let k=0;k<i;k++) s+=VV.parts[k].dur||0; return s; }
+// 通しの時間 g がどのファイルに入っているか（入っていなければ -1）
+function vvFind(g){ for(let i=0;i<VV.parts.length;i++){ const d=VV.parts[i].dur; if(d==null||g<vvOff(i)+d) return i; } return -1; }
+// mp4/mov の中の mvhd から長さ（秒）を読む。先頭と末尾を少しだけ読む
+async function mp4Dur(b){ try{ const N=16*1024*1024; const parts=[b.slice(0,Math.min(N,b.size))]; if(b.size>N) parts.push(b.slice(b.size-N));
+  for(const p of parts){ const u=new Uint8Array(await p.arrayBuffer());
+    for(let i=4;i<u.length-32;i++){ if(u[i]===0x6d&&u[i+1]===0x76&&u[i+2]===0x68&&u[i+3]===0x64){ const dv=new DataView(u.buffer,u.byteOffset+i+4); const ver=dv.getUint8(0);
+      const ts=ver===1?dv.getUint32(20):dv.getUint32(12), du=ver===1?dv.getUint32(24)*4294967296+dv.getUint32(28):dv.getUint32(16); if(ts>0&&du>0) return du/ts; } } } }catch(e){} return null; }
 const VMIME={mp4:"video/mp4",m4v:"video/mp4",mov:"video/quicktime",webm:"video/webm",mkv:"video/x-matroska",avi:"video/x-msvideo",ts:"video/mp2t","3gp":"video/3gpp"};
 function vvType(){ const ext=((VV.name||"").split(".").pop()||"").toLowerCase(); return (VV.blob&&VV.blob.type)||VMIME[ext]||"video/mp4"; }
 function vvURL(){ if(!VV.url&&VV.blob){ const b=VV.blob.type?VV.blob:new Blob([VV.blob],{type:vvType()}); VV.url=URL.createObjectURL(b); } return VV.url; }
 async function openVid(sec){
   VV.pending=sec||0; $("#vidv").hidden=false; document.body.style.overflow="hidden";
   const ok=await vvLoad(); if(!ok){ vvRenderImport(); return; }
+  const i=vvFind(VV.pending); if(i<0){ vvRenderImport("add"); return; }
+  if(i!==VV.cur) vvUse(i);
   vvRenderPlayer();
 }
 function vvDiag(err){ const v=$("#vv"), e=v&&v.error; const codes={1:"中断",2:"読み込みエラー",3:"変換エラー（形式が合わない）",4:"この形式は再生できない"};
   return `${VV.name||"名前なし"}・${VV.blob?Math.round(VV.blob.size/1e6)+"MB":"?"}・${vvType()}${e?"・"+(codes[e.code]||"エラー"+e.code):""}${err&&err.name?"・"+err.name:""}`; }
+function vvRange(){ const P=VV.parts; if(!P.length) return ""; const end=vvOff(P.length); return P.length>1||P[0].dur?`取り込み済み：0:00〜${fmtT(Math.round(end))}（${P.length}ファイル）`:""; }
 function closeVid(){ const v=$("#vv"); if(v){ try{ v.pause(); }catch(e){} } $("#vidv").hidden=true; document.body.style.overflow=""; }
 function vvChapters(){ return Object.values(VIDS).flat().filter(x=>x[1]===VID12).sort((a,b)=>a[2]-b[2]).filter((x,i,a)=>!i||a[i-1][2]!==x[2]); }
 function vvRenderPlayer(){
@@ -5609,29 +5628,35 @@ function vvRenderPlayer(){
     <div class="vv-tools"><button class="btn small" id="vv-fs">全画面で見る</button><span id="vv-info" class="small-muted"></span></div>
     <div class="vv-sync" id="vv-sync"></div>
     <details class="rd"><summary>場面を選ぶ（${vvChapters().length}か所）</summary><div class="chips">${vvChapters().map(([n,,s])=>`<button class="chip" data-vv-seek="${s}">${esc(n)} <span class="mono small-muted">${fmtT(s)}</span></button>`).join("")}</div></details>
-    <p class="small-muted">${VV.saved?"取り込んだ動画はこの端末の中にだけ保存されています。圏外でも見られます。":"この動画は、今アプリを開いている間だけ見られます（端末に保存できませんでした）。"}　<button class="btn small" id="vv-re">別の動画ファイルにする</button></p>`;
-  const v=$("#vv"), big=$("#vv-big"); v.src=vvURL();
+    <p class="small-muted">${VV.saved?"取り込んだ動画はこの端末の中にだけ保存されています。圏外でも見られます。":"この動画は、今アプリを開いている間だけ見られます（端末に保存できませんでした）。"}${vvRange()?"<br>"+vvRange():""}<br><button class="btn small" id="vv-add">続きのファイルを取り込む（${VV.parts.length+1}つ目）</button> <button class="btn small" id="vv-re">別の動画ファイルにする</button></p>`;
+  const v=$("#vv"), big=$("#vv-big"); v.src=vvURL(); const OFF=vvOff(VV.cur);
   // iPhoneは「押した瞬間」にしか再生を始めないので、大きな再生ボタンを押してもらう。場面への移動も読み込めてから行う
   const seekTo=t=>{ const doSeek=()=>{ if(Math.abs(v.currentTime-t)>2){ try{ v.currentTime=t; }catch(e){} } };
     if(v.readyState>=1) doSeek(); else v.addEventListener("loadedmetadata",doSeek,{once:true});
     v.addEventListener("playing",doSeek,{once:true}); };
-  seekTo(VV.pending||0);
+  seekTo(Math.max(0,(VV.pending||0)-OFF));
   v.play().then(()=>{ big.hidden=true; }).catch(()=>{});
-  big.addEventListener("click",()=>{ v.play().then(()=>{ big.hidden=true; seekTo(VV.pending||0); }).catch(err=>{ $("#vv-now").textContent="再生できませんでした："+vvDiag(err); }); if(v.readyState<1){ try{ v.load(); }catch(e){} } });
+  big.addEventListener("click",()=>{ v.play().then(()=>{ big.hidden=true; seekTo(Math.max(0,(VV.pending||0)-OFF)); }).catch(err=>{ $("#vv-now").textContent="再生できませんでした："+vvDiag(err); }); if(v.readyState<1){ try{ v.load(); }catch(e){} } });
   v.addEventListener("play",()=>{ big.hidden=true; });
   // 映像が真っ暗なときの手がかり：映像の大きさが0なら、映像の部分がこの端末で読めない形式
   const diag=()=>{ const el=$("#vv-info"); if(!el||!v.isConnected) return; const w=v.videoWidth,h=v.videoHeight, d=isFinite(v.duration)?fmtT(Math.round(v.duration)):"?";
     if(v.readyState>=1&&!w){ el.innerHTML=`<b>映像が読めない形式です。</b><br>この動画の映像は、iPhoneが再生できない方式（AV1やVP9など）で保存されているようです。iPhoneの「ショートカット」アプリの「メディアをエンコード」で mp4（H.264）に変換してから、もう一度取り込むと見られます。<br><span class="mono">${esc(vvDiag())}・長さ ${d}</span>`; }
-    else el.innerHTML=`<span class="mono small-muted">${esc(vvDiag())}・映像 ${w}×${h}・長さ ${d}</span>`;
+    else el.innerHTML=`<span class="mono small-muted">${VV.parts.length>1?`ファイル${VV.cur+1}/${VV.parts.length}（${fmtT(Math.round(OFF))}〜）・`:""}${esc(vvDiag())}・映像 ${w}×${h}・長さ ${d}</span>`;
     vvCodecs().then(c=>{ const x=vvCodecHTML(c); if(!x||!el.isConnected) return; let s=el.querySelector(".vv-codec"); if(!s){ s=document.createElement("div"); s.className="vv-codec"; el.appendChild(s); } s.innerHTML=x; }).catch(()=>{}); };
   ["loadedmetadata","loadeddata","playing","resize"].forEach(ev=>v.addEventListener(ev,diag));
   setTimeout(diag,4000);
   $("#vv-fs").addEventListener("click",()=>{ try{ if(v.webkitEnterFullscreen) v.webkitEnterFullscreen(); else if(v.requestFullscreen) v.requestFullscreen(); }catch(e){} v.play().catch(()=>{}); });
   v.addEventListener("error",()=>{ big.hidden=true; $("#vv-now").innerHTML=`この動画ファイルを再生できませんでした。<br><span class="mono">${esc(vvDiag())}</span><br>iPhoneで再生できるのは mp4・mov 形式です。「別の動画ファイルにする」で選び直すか、形式を教えてください。`; });
-  v.addEventListener("timeupdate",()=>{ const t=v.currentTime, L=vvChapters(); let cur=null; L.forEach(x=>{ if(x[2]<=t+1) cur=x; }); const el=$("#vv-now"); if(el&&cur) el.textContent="いまの場面："+cur[0]; vvSync(t); });
+  // ファイルの終わりまで来たら、続きのファイルへ
+  v.addEventListener("ended",()=>{ if(VV.cur+1<VV.parts.length){ VV.pending=vvOff(VV.cur+1); vvUse(VV.cur+1); vvRenderPlayer(); }
+    else if(VV.parts.length&&VV.parts[VV.cur].dur&&vvOff(VV.parts.length)<43000) $("#vv-now").innerHTML=`ここで、取り込んだ動画は終わりです。続きのファイル（_${VV.parts.length+1}）を取り込むと、そのまま続きが見られます。　<button class="btn small" id="vv-add2">続きのファイルを取り込む</button>`, $("#vv-add2").addEventListener("click",()=>vvRenderImport("add")); });
+  v.addEventListener("timeupdate",()=>{ const t=OFF+v.currentTime, L=vvChapters(); let cur=null; L.forEach(x=>{ if(x[2]<=t+1) cur=x; }); const el=$("#vv-now"); if(el&&cur) el.textContent="いまの場面："+cur[0]; vvSync(t); });
   VV.syncKey=undefined; vvSync(VV.pending||0);
-  $("#vv-body").querySelectorAll("[data-vv-seek]").forEach(b=>b.addEventListener("click",()=>{ v.currentTime=+b.dataset.vvSeek; v.play().catch(()=>{}); v.scrollIntoView({block:"start"}); }));
-  $("#vv-re").addEventListener("click",vvRenderImport);
+  $("#vv-body").querySelectorAll("[data-vv-seek]").forEach(b=>b.addEventListener("click",()=>{ const g=+b.dataset.vvSeek, i=vvFind(g);
+    if(i===VV.cur){ v.currentTime=g-OFF; v.play().catch(()=>{}); v.scrollIntoView({block:"start"}); return; }
+    VV.pending=g; if(i<0){ vvRenderImport("add"); return; } vvUse(i); vvRenderPlayer(); }));
+  $("#vv-re").addEventListener("click",()=>vvRenderImport("replace"));
+  const ad=$("#vv-add"); if(ad) ad.addEventListener("click",()=>vvRenderImport("add"));
 }
 // ファイルの中身（mp4の目印）から、映像と音声の方式を調べる。先頭と末尾を少しだけ読む
 async function vvCodecs(){
@@ -5671,23 +5696,29 @@ async function vvSync(t){
   box.querySelectorAll("[data-vv-sec]").forEach(b=>b.addEventListener("click",()=>{ const [c,i]=b.dataset.vvSec.split(":"); closeVid(); openSection(c,+i); }));
   box.querySelectorAll("[data-vv-book]").forEach(b=>b.addEventListener("click",()=>{ closeVid(); openBook({key:b.dataset.vvBook}); }));
 }
-function vvRenderImport(){
+function vvRenderImport(mode){
   $("#vv-title").textContent="動画をアプリで見る";
-  const s=VV.pending;
+  const s=VV.pending, add=mode==="add"&&VV.parts.length>0, n=VV.parts.length;
+  const lead=add?`<p><b>${s!=null?`この場面（${fmtT(s)}）は、まだ取り込んでいない続きのファイルに入っています。`:"続きのファイルを取り込みます。"}</b><br>${esc(vvRange())}<br>動画が「_1」「_2」…のように分かれている場合は、<b>${n+1}つ目のファイル（_${n+1}）</b>を選んでください。</p>`
+    :`<p>手元にある動画ファイル（すーさんの「科目Aを12時間で完璧に理解」）を取り込むと、アプリの中で、その場面から再生できます。大きいファイル（500MB以上）でも大丈夫です。分かれたファイル（_1、_2…）のときは、まず _1 を選んで、続きはあとから追加できます。</p>`;
   $("#vv-body").innerHTML=`<div class="bv-imp">
-    <p>手元にある動画ファイル（すーさんの「科目Aを12時間で完璧に理解」）を取り込むと、アプリの中で、その場面から再生できます。大きいファイル（500MB以上）でも大丈夫です。</p>
+    ${lead}
     <label class="btn primary bv-pick">動画ファイルを選ぶ<input type="file" id="vv-file" accept="video/*" hidden></label>
     <p class="small-muted">iPhoneでは「写真」か「ファイル」から選べます。取り込んだ動画はこの端末の中にだけ保存され、ネットには送られません。保存には動画と同じくらいの空き容量が必要です。</p>
     <div id="vv-msg" class="small-muted" aria-live="polite"></div>
     <p style="margin-top:14px"><a class="btn small" href="${ytUrl(VID12,s)}" target="_blank" rel="noopener" data-yt-direct="1">YouTubeで見る${s?"（"+fmtT(s)+"から）":""}</a> <span class="small-muted">（ネットが必要）</span></p></div>`;
   $("#vv-file").addEventListener("change",async e=>{ const f=e.target.files[0]; if(!f) return;
-    if(VV.url){ URL.revokeObjectURL(VV.url); VV.url=null; }
-    VV.blob=f; VV.name=f.name; VV.saved=false; $("#vv-msg").textContent="保存中…（大きい動画は1〜2分かかることがあります）";
+    const i=add?n:0, key=vvKey(i); $("#vv-msg").textContent="保存中…（大きい動画は1〜2分かかることがあります）";
+    const dur=await mp4Dur(f);
+    if(!add){ for(let k=1;k<12;k++) await bkDel(vvKey(k)); VV.parts=[]; }
+    VV.parts[i]={blob:f,name:f.name,dur,key}; vvUse(i); VV.saved=false;
     try{ if(navigator.storage&&navigator.storage.persist) await navigator.storage.persist(); }catch(e){}
-    try{ await bkPut("video12",{blob:f,name:f.name,size:f.size,at:Date.now()});
-      const db=await bkDB(); const back=await new Promise(res=>{ const t=db.transaction("f").objectStore("f").get("video12"); t.onsuccess=()=>res(t.result); t.onerror=()=>res(null); });
-      if(back&&back.blob&&back.blob.size===f.size){ VV.saved=true; toast("動画を取り込みました"); } }
+    try{ await bkPut(key,{blob:f,name:f.name,size:f.size,dur,at:Date.now()});
+      const back=await bkGet(key);
+      if(back&&back.blob&&back.blob.size===f.size){ VV.saved=true; toast(add?`${i+1}つ目のファイルを取り込みました`:"動画を取り込みました"); } }
     catch(err){ toast("端末に保存できなかったので、今回だけ再生します"); }
+    // 取り込んだファイルに目当ての場面が入っていなければ、ファイルの最初から
+    if(VV.pending==null||vvFind(VV.pending)!==i) VV.pending=vvOff(i);
     vvRenderPlayer(); });
 }
 $("#vv-close").addEventListener("click",closeVid);
