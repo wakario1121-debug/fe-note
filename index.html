@@ -5621,8 +5621,9 @@ function vvRenderPlayer(){
   v.addEventListener("play",()=>{ big.hidden=true; });
   // 映像が真っ暗なときの手がかり：映像の大きさが0なら、映像の部分がこの端末で読めない形式
   const diag=()=>{ const el=$("#vv-info"); if(!el||!v.isConnected) return; const w=v.videoWidth,h=v.videoHeight, d=isFinite(v.duration)?fmtT(Math.round(v.duration)):"?";
-    if(v.readyState>=1&&!w){ el.innerHTML=`<b>映像が読めない形式です（音だけ再生されます）。</b><br>この動画の映像は、iPhoneが再生できない方式（AV1やVP9など）で保存されているようです。iPhoneの「ショートカット」アプリの「メディアをエンコード」で mp4（H.264）に変換してから、もう一度取り込むと見られます。<br><span class="mono">${esc(vvDiag())}・長さ ${d}</span>`; }
-    else el.innerHTML=`<span class="mono small-muted">${esc(vvDiag())}・映像 ${w}×${h}・長さ ${d}</span>`; };
+    if(v.readyState>=1&&!w){ el.innerHTML=`<b>映像が読めない形式です。</b><br>この動画の映像は、iPhoneが再生できない方式（AV1やVP9など）で保存されているようです。iPhoneの「ショートカット」アプリの「メディアをエンコード」で mp4（H.264）に変換してから、もう一度取り込むと見られます。<br><span class="mono">${esc(vvDiag())}・長さ ${d}</span>`; }
+    else el.innerHTML=`<span class="mono small-muted">${esc(vvDiag())}・映像 ${w}×${h}・長さ ${d}</span>`;
+    vvCodecs().then(c=>{ const x=vvCodecHTML(c); if(!x||!el.isConnected) return; let s=el.querySelector(".vv-codec"); if(!s){ s=document.createElement("div"); s.className="vv-codec"; el.appendChild(s); } s.innerHTML=x; }).catch(()=>{}); };
   ["loadedmetadata","loadeddata","playing","resize"].forEach(ev=>v.addEventListener(ev,diag));
   setTimeout(diag,4000);
   $("#vv-fs").addEventListener("click",()=>{ try{ if(v.webkitEnterFullscreen) v.webkitEnterFullscreen(); else if(v.requestFullscreen) v.requestFullscreen(); }catch(e){} v.play().catch(()=>{}); });
@@ -5631,6 +5632,25 @@ function vvRenderPlayer(){
   VV.syncKey=undefined; vvSync(VV.pending||0);
   $("#vv-body").querySelectorAll("[data-vv-seek]").forEach(b=>b.addEventListener("click",()=>{ v.currentTime=+b.dataset.vvSeek; v.play().catch(()=>{}); v.scrollIntoView({block:"start"}); }));
   $("#vv-re").addEventListener("click",vvRenderImport);
+}
+// ファイルの中身（mp4の目印）から、映像と音声の方式を調べる。先頭と末尾を少しだけ読む
+async function vvCodecs(){
+  if(VV.codec&&VV.codec.blob===VV.blob) return VV.codec;
+  const b=VV.blob; if(!b) return null; const N=8*1024*1024;
+  const parts=[b.slice(0,Math.min(N,b.size))]; if(b.size>N) parts.push(b.slice(Math.max(N,b.size-N)));
+  let txt=""; for(const p of parts){ const u=new Uint8Array(await p.arrayBuffer()); let s=""; for(let i=0;i<u.length;i++) s+=String.fromCharCode(u[i]); txt+=s; }
+  const V=[["avc1","H.264",1],["avc3","H.264",1],["hvc1","H.265（HEVC）",1],["hev1","H.265（HEVC）",0],["av01","AV1",0],["vp09","VP9",0],["vp08","VP8",0]];
+  const A=[["mp4a","AAC",1],["Opus","Opus",0],["opus","Opus",0],["ac-3","AC-3",1],["ec-3","E-AC-3",1],["fLaC","FLAC",1],[".mp3","MP3",1]];
+  const find=L=>{ const x=L.find(([k])=>txt.indexOf(k)>=0); return x?{name:x[1],ok:!!x[2]}:null; };
+  const webm=txt.slice(0,4)==="\x1aE\xdf\xa3";
+  VV.codec={blob:b,v:find(V),a:find(A),webm}; return VV.codec;
+}
+function vvCodecHTML(c){
+  if(!c) return "";
+  if(c.webm) return `<b>この動画は WebM 形式です。</b>iPhoneでは再生できないことが多い形式です。mp4（H.264）に変換してから取り込んでください。`;
+  if(!c.v&&!c.a) return "";
+  const bad=[c.v&&!c.v.ok?"映像":"",c.a&&!c.a.ok?"音声":""].filter(Boolean);
+  return `映像：<b>${c.v?c.v.name:"不明"}</b> ／ 音声：<b>${c.a?c.a.name:"不明"}</b>`+(bad.length?`<br><b>${bad.join("と")}が、iPhoneでは再生できないことが多い方式です（AV1は iPhone 15 Pro より前の機種では映らず、Opus は古いiOSでは音が出ません）。</b>パソコンの HandBrake（無料）などで「H.264 ＋ AAC の mp4」に変換してから、もう一度取り込んでください。YouTubeから保存し直す場合は、「mp4（H.264／avc1）」の形式を選ぶと、そのまま見られます。`:"");
 }
 // 動画に合わせて、本のページと参考書の節を自動で切り替える
 async function vvSync(t){
