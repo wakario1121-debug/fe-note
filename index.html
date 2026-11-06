@@ -158,6 +158,7 @@ main{max-width:1120px;margin:0 auto;padding:20px 16px 64px}
 .leftover ul{list-style:none;margin:8px 0 6px;padding:0;display:flex;flex-direction:column;gap:8px}
 .leftover li{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;font-size:14px}
 .leftover li input{width:20px;height:20px;margin:0}
+.leftover li.done label{color:var(--muted);text-decoration:line-through}
 .leftover .lt-wk{display:block;font-size:11.5px;color:var(--muted)}
 .chs-lbl{font-size:12px;color:var(--muted);margin-top:8px}
 .st-left{margin-top:10px;border-top:1px dashed var(--line);padding-top:8px}
@@ -3952,7 +3953,7 @@ function leftTasks(){
 function leftHTML(){ try{
   const L=leftTasks(); if(!L.length) return "";
   return `<details class="leftover" open><summary>きのうまでの残り ${L.length}個</summary><ul>${L.map(t=>`<li><input type="checkbox" id="lt-${t.id}" data-lefttask="${t.id}" aria-label="やった"><label for="lt-${t.id}"><span class="lt-wk">${wl(t.w)}</span>${esc(t.t)}</label>${t.ch?`<button class="btn small" data-open-ch="${t.ch}">読む</button>`:t.q?`<button class="btn small" data-open-q="${t.q}">解く</button>`:t.go?`<button class="btn small" data-goto="${t.go}">過去問</button>`:""}</li>`).join("")}</ul>
-    <div class="small-muted">終わったらチェック。解く・読むのタスクは、やれば自動で消えます</div></details>`;
+    <div class="small-muted">終わったらチェック（まちがえたら、もう一度押すと戻せます。計画画面からも外せます）。解く・読むのタスクは、やれば自動で消えます</div></details>`;
 } catch(e){ return ""; } }
 /* ================= 合格までの道筋 ================= */
 const STAGES=[
@@ -4236,7 +4237,8 @@ function renderHome(){
   }));
   $("#v-home").querySelectorAll("[data-night]").forEach(b=>b.addEventListener("click",()=>{S.nightLen=+b.dataset.night;save();renderHome();}));
   bindJumps($("#v-home")); bindMove($("#v-home"));
-  $("#v-home").querySelectorAll("[data-lefttask]").forEach(cb=>cb.addEventListener("change",()=>{ if(!cb.checked) return; S.tasks[cb.dataset.lefttask]=true; save(); act("r"); setTimeout(()=>renderHome(),350); }));
+  // チェックしてもすぐには消さない（まちがえたら、もう一度押すと戻せる）。次にホームを開いたときに消える
+  $("#v-home").querySelectorAll("[data-lefttask]").forEach(cb=>cb.addEventListener("change",()=>{ S.tasks[cb.dataset.lefttask]=cb.checked; save(); if(cb.checked){ act("r"); toast("チェックしました。まちがえたら、もう一度押すと戻せます"); } cb.closest("li").classList.toggle("done",cb.checked); }));
 }
 
 /* ================= カリキュラム ================= */
