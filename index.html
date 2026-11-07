@@ -3956,6 +3956,9 @@ function openSection(ch,i){
   if(h){ h.scrollIntoView(); window.scrollBy(0,-90); }
 }
 
+function reviewLessons(chs){ try{ const L=reviewFor(chs||[]); if(!L.length) return "";
+  return `<div class="step-lz"><span class="lbl">💬 会話でふり返る（全部やると「見直す」に印）</span>${L.map(l=>{ const d=(S.lessons||{})[l.id]; return `<button class="lzitem ${d?"done":""}" data-lesson="${l.id}"><span class="t">${d?"✓ ":""}${esc(chById(l.ch).title)}</span><span class="m">${d?`${d.score}/${d.total}問・もう一回`:`${l.min}分`}</span></button>`; }).join("")}</div>`;
+} catch(e){ return ""; } }
 // 今日の範囲の節に会話の授業があれば、ボタンを並べる（会話を最後までやると、その節を読んだことになる）
 function stepLessons(secs){ try{
   const L=secs.flatMap(s=>lessonsOf(s.ch,s.i).map(l=>({s,l}))); if(!L.length) return "";
@@ -4102,7 +4105,7 @@ function renderHome(){
     dp.secs.length
       ?["read",`今日の範囲を読む：${rangeText(dp.secs)}`,M[0],`<button class="btn small" data-open-sec="${dp.secs[0].ch}:${dp.secs[0].i}">読む</button>`,stepLessons(dp.secs)]
       :dp.weekChs.length
-        ?["read",`ふり返りの日：${dp.weekChs.map(c=>"「"+chById(c).title+"」").join("")}の図とアニメを見直す`,M[0],`<button class="btn small" data-open-ch="${dp.weekChs[0]}">見直す</button>`]
+        ?["read",`ふり返りの日：${dp.weekChs.map(c=>"「"+chById(c).title+"」").join("")}の図とアニメを見直す`,M[0],`<button class="btn small" data-open-ch="${dp.weekChs[0]}">見直す</button>`,reviewLessons(dp.weekChs)]
         :["read","総仕上げ：苦手な分野の参考書を読み直す",M[0],`<button class="btn small" data-goto="past">苦手を見る</button>`],
     dp.secs.length
       ?["quiz",`今日読んだ「${chById(dch).title}」の問題を解き、解説で理由まで確認する`,M[1],`<button class="btn small" data-open-q="${Q.some(q=>q.c===dch)?dch:"random"}">解く</button>`]
@@ -5941,11 +5944,12 @@ function lzFinish(points){
   const L=LZ.L, k=L.ch+":"+L.sec, title=secTitles(L.ch)[L.sec]||L.title, bk=secLink(L.ch,L.sec);
   // 会話を最後までやったら、その節は「読んだ」ことにする
   S.lessons=S.lessons||{}; S.lessons[L.id]={at:Date.now(),score:LZ.score,total:LZ.total,day:today()};
+  if(L.review){ lzFinishReview(points); return; }
   const wasDone=secDone(k), allParts=secLessonsDone(L.ch,L.sec); if(allParts) markSecs([{k,ch:L.ch,i:L.sec}]);
   const dp=dayPlan(); if(!wasDone&&allParts){ if(dp.secs.length&&dp.secs.every(x=>secDone(x.k))&&!(getDay(today()).n||{}).read) markNight("read"); else act("r"); }
   save();
   const nextPart=lessonsOf(L.ch,L.sec).find(x=>x.id!==L.id&&!(S.lessons||{})[x.id]);
-  const next=nextPart||LESSONS.find(x=>x.id!==L.id&&!(S.lessons||{})[x.id]&&dp.secs.some(s=>s.ch===x.ch&&s.i===x.sec))||LESSONS.slice(LESSONS.indexOf(L)+1).find(x=>!(S.lessons||{})[x.id]&&!secDone(x.ch+":"+x.sec))||LESSONS.find(x=>x.id!==L.id&&!(S.lessons||{})[x.id]);
+  const next=nextPart||LESSONS.find(x=>x.id!==L.id&&!(S.lessons||{})[x.id]&&dp.secs.some(s=>s.ch===x.ch&&s.i===x.sec))||LESSONS.slice(LESSONS.indexOf(L)+1).find(x=>!x.review&&!(S.lessons||{})[x.id]&&!secDone(x.ch+":"+x.sec))||LESSONS.find(x=>!x.review&&x.id!==L.id&&!(S.lessons||{})[x.id]);
   const s=document.createElement("div"); s.className="lzsum";
   s.innerHTML=`<h3>今日のまとめ</h3><ol>${points.map(p=>`<li>${p}</li>`).join("")}</ol>
     <div>問題：<span class="mono lzscore">${LZ.score} / ${LZ.total}</span>　${LZ.score===LZ.total?"全問正解！":"もう一回やると覚えられるよ"}</div>
@@ -5956,6 +5960,25 @@ function lzFinish(points){
   if(next) $("#lz-next").onclick=()=>openLesson(next.id);
   $("#lz-again").onclick=()=>openLesson(L.id); $("#lz-close2").onclick=closeLesson;
   s.querySelector("[data-lz-sec]").onclick=()=>{ closeLesson(); openSection(L.ch,L.sec); };
+}
+// ふり返りの授業：今日のふり返りの章の分が全部終わったら、夜の「読む」に印
+const reviewFor=chs=>chs.map(c=>LESSONS.find(l=>l.review&&l.ch===c)).filter(Boolean);
+function lzFinishReview(points){
+  const L=LZ.L, dp=dayPlan(), set=!dp.secs.length?reviewFor(dp.weekChs||[]):[];
+  save();
+  const allDone=set.length&&set.every(x=>(S.lessons||{})[x.id]);
+  if(allDone&&!(getDay(today()).n||{}).read) markNight("read"); else act("r");
+  const next=set.find(x=>x.id!==L.id&&!(S.lessons||{})[x.id]);
+  const s=document.createElement("div"); s.className="lzsum";
+  s.innerHTML=`<h3>ふり返りのまとめ</h3><ol>${points.map(p=>`<li>${p}</li>`).join("")}</ol>
+    <div>問題：<span class="mono lzscore">${LZ.score} / ${LZ.total}</span>　${LZ.score===LZ.total?"全問正解！":"まちがえたところは、参考書の図でもう一度"}</div>
+    ${set.length?`<div class="small-muted">${allDone?"今日のふり返りは全部おわり！":`今日のふり返り：あと${set.filter(x=>!(S.lessons||{})[x.id]).length}本`}</div>`:""}
+    <div class="lzlinks"><button class="btn small" data-lz-ch="${L.ch}">参考書の「${esc(chById(L.ch).title)}」を開く</button></div>`;
+  const r=document.createElement("div"); r.className="lzr"; r.appendChild(s); $("#lz-chat").appendChild(r); lzScroll(); $("#lz-bar").style.width="100%";
+  lzFoot(`${next?`<button class="lzopt next" id="lz-next">次のふり返り：${esc(chById(next.ch).title)}</button>`:""}<button class="lzopt" id="lz-again">もう一回</button><button class="lzopt" id="lz-close2">おわる</button>`);
+  if(next) $("#lz-next").onclick=()=>openLesson(next.id);
+  $("#lz-again").onclick=()=>openLesson(L.id); $("#lz-close2").onclick=closeLesson;
+  s.querySelector("[data-lz-ch]").onclick=()=>{ closeLesson(); openChapter(L.ch); };
 }
 $("#lz-close").addEventListener("click",closeLesson);
 $("#lz-chat").addEventListener("click",e=>{ if(e.target.closest("button,a,input,form")) return; if(LZ&&!LZ.busy&&$("#lz-nx")) lzStep(); });
@@ -7290,6 +7313,78 @@ LESSONS.push(
 );
 Object.assign(LZF,{corp6:`<div class="lztbl"><table><tr><th>案＼景気</th><th>好況</th><th>不況</th></tr><tr><th>案A</th><td>100</td><td>−20</td></tr><tr><th>案B</th><td>60</td><td>20</td></tr><tr><th>案C</th><td>80</td><td>0</td></tr></table></div>`});
 
+/* ---- ふり返りの会話（章ぜんたいを、要点とまちがえやすいところで見直す） ---- */
+LESSONS.push(
+ {id:"rv-sw",ch:"sw",sec:-1,review:1,title:"ふり返り：ソフトウェア",min:7,steps:[
+  {s:"今日はふり返りの日。「ソフトウェア」の章を、試験に出るところだけ一気に見直そう"},
+  {s:"① OS。アプリとハードウェアをつなぐ架け橋。アプリは <b>API</b>（システムコール）でOSの機能を使う。機能は ジョブ管理・タスク管理・記憶管理・データ管理"},
+  {s:"<b>スプーリング</b>：遅いプリンタなどとのやり取りを、いったん補助記憶にためる。CPUは待たずに次へ。<b>バッファ</b>：速さの違う装置の間でデータを一時的にためる"},
+  LQ("印刷データをいったん補助記憶にためて、CPUがプリンタを待たずに次の処理を進められるようにする機能は？",["スプーリング","バッファ","ページング","ディスパッチ"],0,"遅い入出力をいったんためる＝スプーリング"),
+  {s:"② タスク管理。状態は3つ：<b>実行可能</b>（順番待ち）・<b>実行</b>・<b>待ち</b>（入出力中）"},
+  {fig:"FIG:task"},
+  {s:"実行可能 → 実行 にするのが <b>ディスパッチ</b>。<span class=\"hl\">待ち状態から実行状態へは直接行かない</span>。いったん実行可能に並ぶ"},
+  LQ("入出力が終わったタスクは、次にどの状態になる？",["実行可能状態","実行状態","待ち状態","終了"],0,"待ち→実行には直接行かない。いったん実行可能状態に並ぶ"),
+  {s:"スケジューリング：到着順、優先度順（待つほど優先度を上げるのが <b>エージング</b>）、<b>ラウンドロビン</b>（一定時間ごとに順番に）、処理時間順"},
+  {s:"<b>プリエンプティブ</b>＝OSが割り込んで切り替える。ノンプリエンプティブ＝終わるまで切り替えない。お互いに相手の資源を待って止まるのが <b>デッドロック</b>"},
+  LQ("優先度の低いタスクがいつまでも実行されないのを防ぐため、待ち時間に応じて優先度を上げる工夫は？",["エージング","ラウンドロビン","ディスパッチ","スラッシング"],0,"年をとる（aging）ほど優先度が上がる"),
+  {s:"③ 記憶管理。<b>仮想記憶</b>：補助記憶を主記憶のように使う。<b>ページング</b>：同じ大きさのページに分けて管理"},
+  {s:"使いたいページが実記憶にない → <b>ページフォールト</b>。追い出すページの選び方は FIFO・<b>LRU</b>（最後に使われてから最も時間がたったもの。よく出る）・LFU"},
+  {s:"ページの出し入ればかりで処理が進まない → <b>スラッシング</b>。空きが細切れ → フラグメンテーション（まとめ直すのがコンパクション）。返さず空きが減る → メモリリーク"},
+  LQ("ページ置換えで、最後に参照されてから最も長い時間がたったページを追い出す方式は？",["LRU","FIFO","LFU","ラウンドロビン"],0,"Least Recently Used＝いちばん長く使われていない"),
+  {s:"④ ファイル。<b>絶対パス</b>はルート（/）から、<b>相対パス</b>はカレントディレクトリから。「..」は1つ上、「.」は今いる場所"},
+  LQ("カレントディレクトリが /A/B のとき、相対パス ../C/d.txt が指すファイルは？",["/A/C/d.txt","/A/B/C/d.txt","/C/d.txt","/B/C/d.txt"],0,".. で /A に上がって、C/d.txt へ"),
+  {s:"⑤ バックアップ。差分＝<b>前回のフル</b>から（戻すのはフル＋最新の差分）。増分＝<b>前回のバックアップ</b>から（戻すのはフル＋増分全部）"},
+  {s:"⑥ 開発ツール。<b>コンパイラ</b>：字句解析 → 構文解析 → 意味解析 → 最適化 → コード生成。<b>リンカ</b>：部品をつないでロードモジュールにする。<b>インタプリタ</b>：1文ずつ解釈して実行"},
+  LQ("コンパイラの処理の順番として正しいものは？",["字句解析→構文解析→意味解析→最適化→コード生成","構文解析→字句解析→意味解析→コード生成→最適化","字句解析→意味解析→構文解析→最適化→コード生成","最適化→字句解析→構文解析→意味解析→コード生成"],0,"文字（字句）→ 文法（構文）→ 意味 → 最適化 → コード生成"),
+  {s:"⑦ OSS。<b>コピーレフト</b>（代表 GPL）：改変したものにも同じ条件を求める。MIT・BSD・Apache はコピーレフトなし。統合開発環境の代表が Eclipse"},
+  LQ("改変して再配布するときも、元と同じライセンス条件で公開することを求める考え方は？",["コピーレフト","デュアルライセンス","パブリックドメイン","シェアウェア"],0,"コピーライト（著作権）の逆の発想。代表は GPL",null,{tag:"試験と同じ形"}),
+  {sum:["OS：API、スプーリング・バッファ。タスク：実行可能・実行・待ち（待ち→実行は直接行かない）、エージング、ラウンドロビン、デッドロック","仮想記憶：ページング、ページフォールト、LRU、スラッシング","絶対パス／相対パス（..）、差分＝フルから・増分＝前回から","コンパイラの順番、リンカ、インタプリタ。コピーレフト（GPL）"]}]},
+
+ {id:"rv-db",ch:"db",sec:-1,review:1,title:"ふり返り：データベース",min:8,steps:[
+  {s:"「データベース」の章のふり返り。科目Aで毎回何問も出るところだよ"},
+  {s:"① 関係データベースは表（テーブル）。横1行がレコード（行）、縦1列が列（属性）"},
+  {s:"<b>主キー</b>：レコードを1つに特定する列。<span class=\"hl\">重複もNULLもだめ</span>。2つ以上の列の組なら複合キー"},
+  {s:"<b>外部キー</b>：ほかの表の主キーを参照する列。<b>参照制約</b>で、参照先にない値は入れられず、参照されている行は勝手に消せない"},
+  LQ("主キーの条件として正しいものは？",["値の重複も、NULLも許されない","重複は許されるが、NULLは許されない","NULLは許されるが、重複は許されない","どちらも許される"],0,"1件を必ず特定できるように、重複もNULLもだめ"),
+  {s:"② 設計。<b>E-R図</b>：エンティティ（四角）とリレーションシップ（線）。多対多は、間にエンティティを置いて1対多の2つに分ける"},
+  {s:"<b>正規化</b>：重複や更新時の矛盾をなくすように表を分ける。カギは <b>関数従属</b>（A が決まれば B が1つに決まる：A → B）"},
+  {s:"第1正規形＝繰返しをなくす。第2正規形＝<b>部分関数従属</b>（主キーの一部で決まる）をなくす。第3正規形＝<b>推移的関数従属</b>（主キー以外の列で決まる）をなくす"},
+  LQ("主キーが {注文番号, 商品番号} の表で、「商品番号 → 商品名」という関係がある。これを解消すると何正規形になる？",["第2正規形","第1正規形","第3正規形","非正規形"],0,"主キーの一部（商品番号）だけで決まる＝部分関数従属。なくすと第2正規形"),
+  {s:"③ 関係演算。<b>選択</b>＝条件に合う<span class=\"hl\">行</span>を取り出す。<b>射影</b>＝特定の<span class=\"hl\">列</span>を取り出す。<b>結合</b>＝共通の列で表をつなぐ"},
+  LQ("表から特定の列だけを取り出す関係演算は？",["射影","選択","結合","和"],0,"列＝射影、行＝選択"),
+  {s:"④ SQL。WHERE＝<span class=\"hl\">まとめる前</span>の行の条件。HAVING＝GROUP BY で<span class=\"hl\">まとめた後</span>の条件。重複を除くのは DISTINCT"},
+  {s:"LIKE '東%'（% は0文字以上、_ は1文字）、BETWEEN a AND b、IN、IS NULL。ほかに ビュー（仮想の表）、インデックス（検索は速く、更新は遅く）、副問合せ、EXISTS"},
+  LQ("部署ごとの平均給与が30万円以上の部署だけを出したい。条件を書く句は？",["HAVING","WHERE","ORDER BY","DISTINCT"],0,"まとめた後（GROUP BY の後）の条件は HAVING"),
+  {s:"⑤ トランザクション。<b>ACID特性</b>：原子性（全部やるか、全くやらないか。いちばん出る）・一貫性・独立性・耐久性"},
+  {s:"確定が <b>コミット</b>、取り消しが <b>ロールバック</b>。障害回復は2つ"},
+  {s:"<b>ロールバック</b>：<span class=\"hl\">更新前ログ</span>で、途中のトランザクションを元に戻す。<b>ロールフォワード</b>：ディスク故障のとき、バックアップ＋<span class=\"hl\">更新後ログ</span>で確定済みの更新をやり直す"},
+  LQ("ディスクが故障したので、バックアップを戻したあと、確定済みの更新をやり直す。使うものは？",["更新後ログ（ロールフォワード）","更新前ログ（ロールバック）","チェックポイントだけ","インデックス"],0,"進める＝ロールフォワード＝更新後ログ。戻す＝ロールバック＝更新前ログ"),
+  {s:"⑥ 排他制御。同時に更新して片方の更新が消えるのを防ぐのが <b>ロック</b>"},
+  {s:"<b>共有ロック</b>どうしは同時にかけられる（読むだけ）。<b>専有ロック</b>はほかのロックと両立しない（更新するとき）"},
+  {s:"お互いに相手のロックを待って進めないのが <b>デッドロック</b>。ロックの単位が <b>粒度</b>（大きいと待ちが増える）"},
+  LQ("あるデータに共有ロックがかかっているとき、後から別のトランザクションがかけられるのは？",["共有ロックだけ","専有ロックだけ","どちらも","どちらもかけられない"],0,"共有どうしは両立する。専有は何とも両立しない"),
+  {s:"⑦ 応用。データウェアハウス（分析用に時系列で）、データマート（部門向け）、OLAP（ドリルダウン・ロールアップ・スライス・ダイス）、NoSQL（BASE特性）、ETL（抽出→変換→格納）"},
+  LQ("トランザクションの性質のうち、「処理が全部実行されるか、まったく実行されないかのどちらかである」ものは？",["原子性","一貫性","独立性","耐久性"],0,"Atomicity（原子性）。途中半端はない",null,{tag:"試験と同じ形"}),
+  {sum:["主キー＝重複もNULLもだめ、外部キー＝他の表の主キー（参照制約）","第1＝繰返しなし、第2＝部分関数従属なし、第3＝推移的関数従属なし","選択＝行、射影＝列、結合。WHERE＝まとめる前、HAVING＝まとめた後","ACID（原子性がいちばん出る）、ロールバック＝更新前ログ、ロールフォワード＝更新後ログ。共有ロックどうしは両立、専有は両立しない"]}]},
+
+ {id:"rv-hi",ch:"hi",sec:-1,review:1,title:"ふり返り：UIとマルチメディア",min:5,steps:[
+  {s:"「ユーザーインタフェースとマルチメディア」のふり返り。言葉の区別が問われるところ"},
+  {s:"① 画面の部品。ラジオボタン＝<span class=\"hl\">排他的に1つ</span>、チェックボックス＝いくつでも、プルダウンメニュー＝一覧から1つ、コンボボックス＝一覧＋手入力"},
+  LQ("性別のように、互いに排他的な選択肢から1つだけ選ばせる部品は？",["ラジオボタン","チェックボックス","コンボボックス","ツールチップ"],0,"排他的に1つ＝ラジオボタン"),
+  {s:"② 使いやすさ。マクロ＝定型的な作業を減らす、ショートカットキー＝よく行う操作を効率よく"},
+  {s:"<b>ユニバーサルデザイン</b>＝はじめから誰でも。<b>バリアフリー</b>＝障壁を取り除く。評価は ヒューリスティック評価（専門家の経験則）・ユーザテスト"},
+  {s:"入力の誤りを見つけるのが <b>チェックディジット</b>。入力チェックは、範囲（リミット）・数字か（ニューメリック）・形式・照合・重複 など"},
+  LQ("専門家が経験則に照らしてUIの問題点を見つける評価方法は？",["ヒューリスティック評価","ユーザテスト","インタビュー法","A/Bテスト"],0,"経験則（heuristic）"),
+  {s:"③ 文字と音。アウトラインフォント＝拡大しても滑らか。PCM：<b>標本化 → 量子化 → 符号化</b>"},
+  {s:"音のデータ量 ＝ 標本化周波数 × 量子化ビット数 × 秒数。標本化定理：最高周波数の<span class=\"hl\">2倍より高く</span>標本化する"},
+  LQ("44.1kHz・16ビット・ステレオ（2チャンネル）で1秒録音したデータ量は？",["176,400バイト","88,200バイト","705,600バイト","44,100バイト"],0,"44,100×16×2＝1,411,200ビット。8で割って176,400バイト",null,{hint:"ヒント：ビットで出してから8で割る"}),
+  {s:"④ 画像と動画。アンチエイリアシング＝ギザギザ対策、テクスチャマッピング＝表面に模様、レンダリング＝3Dデータから画像、モーフィング＝形が変わっていく"},
+  {s:"RGB＝加法混色（画面）、CMY＝減法混色（印刷）。画像のデータ量＝横×縦×1画素。動画の圧縮は <b>H.264／MPEG-4 AVC</b>"},
+  {s:"VR＝仮想に入る、<b>AR</b>＝現実に重ねる、MR＝現実と仮想を融合"},
+  LQ("1,920×1,080画素、1画素24ビットの画像のデータ量はおよそ？",["約6.2Mバイト","約2.1Mバイト","約50Mバイト","約0.6Mバイト"],0,"1,920×1,080×3バイト＝6,220,800バイト≒6.2Mバイト",null,{tag:"試験と同じ形"}),
+  {sum:["ラジオボタン＝排他的に1つ、チェックボックス＝いくつでも、コンボボックス＝一覧＋手入力","ユニバーサル＝はじめから誰でも、バリアフリー＝障壁を除く、ヒューリスティック評価、チェックディジット","PCM（標本化→量子化→符号化）、データ量＝周波数×ビット数×秒数（×チャンネル）、標本化定理＝2倍より高く","アンチエイリアシング・テクスチャマッピング・レンダリング・モーフィング、RGB／CMY、H.264、VR／AR／MR"]}]}
+);
+
 
 /* ================= 練習シート（紙でやる計画タスクを、アプリの中でできるようにする） ================= */
 const PR_rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
@@ -7440,7 +7535,7 @@ new MutationObserver(()=>offPaint()).observe(document.getElementById("v-home"),{
 try{ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist(); }catch(e){}
 
 // 新しい版が出ていたら知らせる（電波が弱いと、開いたときに前の版が出ることがあるため）
-const FE_VER="9f971da63a";
+const FE_VER="a8e9e8718f";
 async function verCheck(){ try{ if(!navigator.onLine) return; const r=await fetch("index.html?v="+Date.now(),{cache:"no-store"}); if(!r.ok) return; const t=await r.text(); const m=t.match(/const FE_VER="([0-9a-f]+)"/); if(!m||m[1]===FE_VER) return;
   if(document.getElementById("ver-bar")) return; const b=document.createElement("div"); b.id="ver-bar"; b.setAttribute("role","status");
   b.style.cssText="position:fixed;left:12px;right:12px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:80;background:#2F49C4;color:#fff;border-radius:14px;padding:10px 14px;display:flex;gap:10px;align-items:center;font-weight:700;box-shadow:0 6px 20px rgba(0,0,0,.25)";
