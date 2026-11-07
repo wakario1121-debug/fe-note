@@ -5622,8 +5622,13 @@ const VV={blob:null,url:null,name:"",pending:null,loading:null,saved:false,parts
 const vvKey=i=>i?"video12-"+(i+1):"video12";
 function bkGet(key){ return bkDB().then(db=>new Promise(res=>{ const t=db.transaction("f").objectStore("f").get(key); t.onsuccess=()=>res(t.result||null); t.onerror=()=>res(null); })).catch(()=>null); }
 function bkDel(key){ return bkDB().then(db=>new Promise(res=>{ const tx=db.transaction("f","readwrite"); tx.objectStore("f").delete(key); tx.oncomplete=()=>res(); tx.onerror=()=>res(); })).catch(()=>{}); }
+// 分けて保存した動画を、1つの Blob にまとめて取り出す（昔の1つにまとめた保存の形も読める）
+async function vvBlobOf(v,key){ if(!v) return null; if(v.blob) return v.blob; if(!v.n) return null;
+  const parts=[]; for(let j=0;j<v.n;j++){ const c=await bkGet(key+"#"+j); if(!c||!c.blob) return null; parts.push(c.blob); }
+  return new Blob(parts,{type:v.type||"video/mp4"}); }
+async function vvDelPart(key){ const v=await bkGet(key); if(v&&v.n) for(let j=0;j<v.n;j++) await bkDel(key+"#"+j); await bkDel(key); }
 function vvLoad(){ if(VV.parts.length) return Promise.resolve(true);
-  if(!VV.loading) VV.loading=(async()=>{ const P=[]; for(let i=0;i<12;i++){ const v=await bkGet(vvKey(i)); if(!v||!v.blob) break; P.push({blob:v.blob,name:v.name||"",dur:v.dur||null,key:vvKey(i)}); }
+  if(!VV.loading) VV.loading=(async()=>{ const P=[]; for(let i=0;i<12;i++){ const v=await bkGet(vvKey(i)); const bl=await vvBlobOf(v,vvKey(i)); if(!bl) break; P.push({blob:bl,name:v.name||"",dur:v.dur||null,key:vvKey(i)}); }
     VV.parts=P; if(!P.length) return false; vvUse(0); VV.saved=true;
     for(const p of P) if(!p.dur){ p.dur=await mp4Dur(p.blob); if(p.dur){ const v=await bkGet(p.key); if(v){ v.dur=p.dur; bkPut(p.key,v).catch(()=>{}); } } }
     return true; })().catch(()=>false).finally(()=>{ VV.loading=null; });
@@ -5737,19 +5742,32 @@ function vvRenderImport(mode){
   $("#vv-body").innerHTML=`<div class="bv-imp">
     ${lead}
     <label class="btn primary bv-pick">動画ファイルを選ぶ<input type="file" id="vv-file" accept="video/*" hidden></label>
+    <label class="btn bv-pick">保存しないで見る<input type="file" id="vv-file-now" accept="video/*" hidden></label>
+    <p class="small-muted">大きすぎて取り込めないときは「保存しないで見る」。端末にコピーせず、選んだファイルからそのまま再生します（次に見るときは、もう一度ファイルを選びます）。</p>
     <p class="small-muted">iPhoneでは「写真」か「ファイル」から選べます。取り込んだ動画はこの端末の中にだけ保存され、ネットには送られません。保存には動画と同じくらいの空き容量が必要です。</p>
     <div id="vv-msg" class="small-muted" aria-live="polite"></div>
     <p style="margin-top:14px"><a class="btn small" href="${ytUrl(VID12,s)}" target="_blank" rel="noopener" data-yt-direct="1">YouTubeで見る${s?"（"+fmtT(s)+"から）":""}</a> <span class="small-muted">（ネットが必要）</span></p></div>`;
+  $("#vv-file-now").addEventListener("change",async e=>{ const f=e.target.files[0]; if(!f) return;
+    const i=add?n:0; $("#vv-msg").textContent="準備中…";
+    const dur=await mp4Dur(f);
+    if(!add) VV.parts=[];
+    VV.parts[i]={blob:f,name:f.name,dur,key:null,temp:true}; vvUse(i); VV.saved=false;
+    if(VV.pending==null||vvFind(VV.pending)!==i) VV.pending=vvOff(i);
+    toast("保存せずに再生します（アプリを閉じると、また選ぶ必要があります）"); vvRenderPlayer(); });
   $("#vv-file").addEventListener("change",async e=>{ const f=e.target.files[0]; if(!f) return;
     const i=add?n:0, key=vvKey(i); $("#vv-msg").textContent="保存中…（大きい動画は1〜2分かかることがあります）";
     const dur=await mp4Dur(f);
-    if(!add){ for(let k=1;k<12;k++) await bkDel(vvKey(k)); VV.parts=[]; }
+    if(!add){ for(let k=1;k<12;k++) await vvDelPart(vvKey(k)); VV.parts=[]; }
     VV.parts[i]={blob:f,name:f.name,dur,key}; vvUse(i); VV.saved=false;
     try{ if(navigator.storage&&navigator.storage.persist) await navigator.storage.persist(); }catch(e){}
-    try{ await bkPut(key,{blob:f,name:f.name,size:f.size,dur,at:Date.now()});
-      const back=await bkGet(key);
-      if(back&&back.blob&&back.blob.size===f.size){ VV.saved=true; toast(add?`${i+1}つ目のファイルを取り込みました`:"動画を取り込みました"); } }
-    catch(err){ toast("端末に保存できなかったので、今回だけ再生します"); }
+    try{ await vvDelPart(key);
+      // 32MBずつ保存して、進み具合を出す
+      const C=32*1024*1024, N=Math.ceil(f.size/C);
+      for(let j=0;j<N;j++){ await bkPut(key+"#"+j,{blob:f.slice(j*C,Math.min(f.size,(j+1)*C))}); $("#vv-msg").textContent=`保存中… ${Math.round((j+1)/N*100)}%（${Math.round(Math.min(f.size,(j+1)*C)/1048576)} / ${Math.round(f.size/1048576)}MB）`; }
+      await bkPut(key,{n:N,name:f.name,size:f.size,type:f.type||"",dur,at:Date.now()});
+      const back=await vvBlobOf(await bkGet(key),key);
+      if(back&&back.size===f.size){ VV.saved=true; toast(add?`${i+1}つ目のファイルを取り込みました`:"動画を取り込みました"); } }
+    catch(err){ vvDelPart(key); toast("端末に保存できなかったので、今回だけ再生します（空き容量が足りないかもしれません）"); }
     // 取り込んだファイルに目当ての場面が入っていなければ、ファイルの最初から
     if(VV.pending==null||vvFind(VV.pending)!==i) VV.pending=vvOff(i);
     vvRenderPlayer(); });
@@ -7535,7 +7553,7 @@ new MutationObserver(()=>offPaint()).observe(document.getElementById("v-home"),{
 try{ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist(); }catch(e){}
 
 // 新しい版が出ていたら知らせる（電波が弱いと、開いたときに前の版が出ることがあるため）
-const FE_VER="a8e9e8718f";
+const FE_VER="87c1250884";
 async function verCheck(){ try{ if(!navigator.onLine) return; const r=await fetch("index.html?v="+Date.now(),{cache:"no-store"}); if(!r.ok) return; const t=await r.text(); const m=t.match(/const FE_VER="([0-9a-f]+)"/); if(!m||m[1]===FE_VER) return;
   if(document.getElementById("ver-bar")) return; const b=document.createElement("div"); b.id="ver-bar"; b.setAttribute("role","status");
   b.style.cssText="position:fixed;left:12px;right:12px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:80;background:#2F49C4;color:#fff;border-radius:14px;padding:10px 14px;display:flex;gap:10px;align-items:center;font-weight:700;box-shadow:0 6px 20px rgba(0,0,0,.25)";
